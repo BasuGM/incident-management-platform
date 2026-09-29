@@ -1,0 +1,31 @@
+---
+description: General architecture and change discipline for the incident management monorepo
+alwaysApply: true
+---
+
+# Project architecture
+
+## Monorepo layout
+
+- `frontend/` — Next.js (independently runnable)
+- `backend/` — Spring Boot (independently runnable)
+- `docker-compose.yml` — PostgreSQL and Redis for local development
+- `docs/` — product and engineering documentation
+
+## Agent workflow
+
+1. Inspect existing code and docs before modifying files.
+2. Keep changes focused; do not rewrite unrelated files.
+3. Do not introduce new dependencies without clear justification.
+4. Do not duplicate utilities — search `frontend/src/lib` and `backend/.../common` first.
+5. Never commit secrets; use `.env.example` templates only.
+6. Do not bypass established patterns (API client, error format, package structure).
+7. Do not implement domain functionality (incidents, users, teams, auth) unless explicitly requested.
+8. Run relevant tests after substantive changes (`./gradlew test`, `npm run lint`, `npm run test:e2e`).
+9. Explain significant architectural decisions in `docs/decisions.md`.
+
+## API boundary
+
+- REST base path: `/api/v1/*`
+- Backend returns structured errors via `ApiErrorResponse`
+- Frontend uses `src/lib/api/` for HTTP access

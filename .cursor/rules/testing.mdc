@@ -1,0 +1,26 @@
+---
+description: Testing conventions for frontend and backend
+globs: "{frontend,backend}/**/*"
+alwaysApply: false
+---
+
+# Testing conventions
+
+## Backend
+
+- JUnit 5, Mockito, Spring Boot Test, Testcontainers (PostgreSQL)
+- Do not use H2 as a substitute for PostgreSQL integration tests
+- Integration tests should extend `support.IntegrationTestBase` when a database is required
+- Run: `cd backend && ./gradlew test`
+
+## Frontend
+
+- Playwright for end-to-end smoke and flow tests
+- Configure tests against the Next.js dev server via `playwright.config.ts`
+- Run: `cd frontend && npm run test:e2e`
+
+## Expectations for agents
+
+- Add or update tests when changing behavior that is already covered
+- Keep smoke tests minimal until features exist
+- Do not skip failing tests; fix root causes or document environment prerequisites (e.g. Docker for Testcontainers)

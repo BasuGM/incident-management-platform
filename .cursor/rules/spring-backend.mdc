@@ -1,0 +1,33 @@
+---
+description: Spring Boot backend conventions
+globs: backend/**/*
+alwaysApply: false
+---
+
+# Spring Boot backend conventions
+
+## Stack
+
+- Java 21, Spring Boot, Spring Web, Spring Security, Spring Data JPA, Flyway, PostgreSQL, Redis (configured, features later)
+
+## Structure
+
+- `config/` — security, Redis, framework configuration
+- `common/` — cross-cutting concerns (`exception`, `response`, `validation`)
+- Feature packages (e.g. `incident/`) are added in later phases — do not create them prematurely
+
+## Coding rules
+
+- Constructor injection only
+- Thin controllers; business logic in services (when introduced)
+- DTOs at API boundaries; never expose JPA entities directly from REST
+- Repositories handle persistence
+- Use Bean Validation on request DTOs
+- Use transactions deliberately in services
+- Avoid unnecessary abstractions and premature microservices
+
+## Configuration
+
+- Use environment variables for DB and Redis (see `backend/.env.example`)
+- Separate `application-test.yml` for tests
+- Flyway migrations live in `src/main/resources/db/migration/`

@@ -1,0 +1,29 @@
+---
+description: Next.js frontend conventions
+globs: frontend/**/*
+alwaysApply: false
+---
+
+# Next.js frontend conventions
+
+## Stack
+
+- Next.js App Router, TypeScript (strict), Tailwind CSS, shadcn/ui, TanStack Query
+
+## Structure
+
+- `src/app/` — routes, layouts, error/loading/not-found
+- `src/components/ui/` — shared shadcn primitives
+- `src/components/layout/` — shell and layout components
+- `src/features/` — feature-specific UI and hooks (add when implementing domains)
+- `src/lib/api/` — centralized API client and endpoint helpers
+- `src/stores/` — Zustand only for genuine client-side global state (avoid server state here)
+
+## Rules
+
+- Keep server state in TanStack Query
+- Reuse `src/lib/api/client.ts` for HTTP calls
+- Use `NEXT_PUBLIC_API_URL` for browser-accessible API base URL
+- Avoid giant components; extract focused components
+- Do not add npm dependencies without justification
+- Match existing ESLint and Prettier setup
