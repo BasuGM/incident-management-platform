@@ -1,0 +1,28 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Dependencies and build output
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/playwright-report/
+frontend/test-results/
+backend/.gradle/
+backend/build/
+
+# IDE and OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Logs
+*.log
