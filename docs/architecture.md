@@ -30,6 +30,15 @@ The backend starts as a **modular monolith**:
 - Server state via TanStack Query
 - Shared UI primitives via shadcn/ui
 - Centralized API client in `src/lib/api/`
+- Access tokens held in memory; refresh tokens carried via HttpOnly cookies to the API
+
+## Authentication (Phase 2)
+
+- Spring Security with stateless JWT access tokens
+- BCrypt password hashing
+- Refresh tokens persisted in PostgreSQL (hashed) with rotation on refresh
+- Role-based access control: `ADMIN`, `ENGINEER`, `VIEWER`
+- Method-level authorization for user APIs (`@PreAuthorize`)
 
 ## Environments
 

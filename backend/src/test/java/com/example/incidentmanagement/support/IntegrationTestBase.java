@@ -24,5 +24,12 @@ public abstract class IntegrationTestBase {
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("app.redis.enabled", () -> "false");
+        registry.add(
+                "app.jwt.secret",
+                () -> "test-jwt-secret-key-minimum-32-characters-long!!");
+        registry.add("app.jwt.access-token-expiration-seconds", () -> "900");
+        registry.add("app.jwt.refresh-token-expiration-days", () -> "7");
+        registry.add("app.auth.refresh-cookie-name", () -> "refresh_token");
+        registry.add("app.auth.refresh-cookie-secure", () -> "false");
     }
 }

@@ -16,21 +16,35 @@ export class ApiError extends Error {
   }
 }
 
-type ApiClientOptions = {
+export type ApiClientOptions = {
   baseUrl?: string;
+  getAccessToken?: () => string | null;
+  credentials?: RequestCredentials;
 };
 
 export function createApiClient(options: ApiClientOptions = {}) {
   const baseUrl = options.baseUrl ?? getApiBaseUrl();
+  const getAccessToken = options.getAccessToken ?? (() => null);
+  const credentials = options.credentials ?? "include";
 
   async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const url = `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+    const accessToken = getAccessToken();
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      ...(init?.headers as Record<string, string> | undefined),
+    };
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+    if (init?.body && !headers["Content-Type"]) {
+      headers["Content-Type"] = "application/json";
+    }
+
     const response = await fetch(url, {
       ...init,
-      headers: {
-        Accept: "application/json",
-        ...(init?.headers ?? {}),
-      },
+      credentials,
+      headers,
     });
 
     if (!response.ok) {
@@ -51,13 +65,27 @@ export function createApiClient(options: ApiClientOptions = {}) {
       return undefined as T;
     }
 
+    if (response.status === 205) {
+      return undefined as T;
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (!contentType?.includes("application/json")) {
+      return undefined as T;
+    }
+
     return (await response.json()) as T;
   }
 
   return {
     get: <T>(path: string) => request<T>(path),
+    post: <T>(path: string, body?: unknown) =>
+      request<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }),
+    patch: <T>(path: string, body?: unknown) =>
+      request<T>(path, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }),
     request,
   };
 }
 
-export const apiClient = createApiClient();
+/** Public API client for unauthenticated endpoints (e.g. health). */
+export const apiClient = createApiClient({ credentials: "omit" });

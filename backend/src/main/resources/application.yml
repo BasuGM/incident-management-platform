@@ -39,6 +39,13 @@ app:
     enabled: true
     host: ${REDIS_HOST:localhost}
     port: ${REDIS_PORT:6379}
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiration-seconds: ${JWT_ACCESS_EXPIRATION_SECONDS:900}
+    refresh-token-expiration-days: ${JWT_REFRESH_EXPIRATION_DAYS:7}
+  auth:
+    refresh-cookie-name: refresh_token
+    refresh-cookie-secure: ${AUTH_REFRESH_COOKIE_SECURE:false}
 
 logging:
   level:

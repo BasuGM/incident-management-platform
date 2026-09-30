@@ -6,6 +6,8 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -52,6 +54,39 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST,
                 "MALFORMED_REQUEST",
                 "Request body could not be read",
+                request.getRequestURI(),
+                List.of());
+    }
+
+    @ExceptionHandler(ApiClientException.class)
+    public ResponseEntity<ApiErrorResponse> handleApiClient(
+            ApiClientException ex, HttpServletRequest request) {
+        return buildResponse(
+                ex.getStatus(),
+                ex.getErrorCode(),
+                ex.getMessage(),
+                request.getRequestURI(),
+                List.of());
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiErrorResponse> handleAuthentication(
+            AuthenticationException ex, HttpServletRequest request) {
+        return buildResponse(
+                HttpStatus.UNAUTHORIZED,
+                "UNAUTHORIZED",
+                "Authentication required",
+                request.getRequestURI(),
+                List.of());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiErrorResponse> handleAccessDenied(
+            AccessDeniedException ex, HttpServletRequest request) {
+        return buildResponse(
+                HttpStatus.FORBIDDEN,
+                "FORBIDDEN",
+                "Access denied",
                 request.getRequestURI(),
                 List.of());
     }

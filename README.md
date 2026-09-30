@@ -1,6 +1,6 @@
 # Developer Incident Management Platform
 
-Foundation monorepo for a developer-focused incident management product. This phase includes tooling, architecture skeleton, and documentation only — **no domain features** (incidents, users, teams, authentication) yet.
+Foundation monorepo for a developer-focused incident management product. **Phase 2 (authentication, users, RBAC)** is implemented. Incident and organization features are not implemented yet.
 
 ## Architecture
 
@@ -94,7 +94,9 @@ cd incident-management-platform/frontend
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000). Register a user at `/register` or sign in at `/login`.
+
+Auth APIs live under `/api/v1/auth/*` on the backend (`http://localhost:8080`). Set `JWT_SECRET` in `backend/.env` before starting the API.
 
 ## Run backend tests
 
@@ -137,4 +139,4 @@ incident-management-platform/
 
 ## Suggested next step
 
-Implement **Phase 2: Authentication and authorization** (identity model, secured `/api/v1/*`, and frontend session handling) on top of this foundation.
+Implement **Phase 3: Organizations and teams** (tenancy, membership, and admin flows).

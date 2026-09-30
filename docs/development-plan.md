@@ -4,9 +4,13 @@
 
 Project structure, Docker Compose (PostgreSQL, Redis), Spring Boot and Next.js skeletons, API/error conventions, testing harness, and documentation.
 
+**Status:** completed
+
 ## Phase 2: Authentication and authorization
 
 User identity, sessions or tokens, roles, and API protection.
+
+**Status:** completed (register/login/refresh/logout, users API, RBAC, frontend auth shell, tests)
 
 ## Phase 3: Organizations and teams
 
