@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.example.incidentmanagement.support.DatabaseCleaner;
 import com.example.incidentmanagement.support.IntegrationTestBase;
 import com.example.incidentmanagement.user.User;
 import com.example.incidentmanagement.user.UserRepository;
@@ -23,7 +24,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest
@@ -38,12 +38,15 @@ class AuthIntegrationTest extends IntegrationTestBase {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private DatabaseCleaner databaseCleaner;
+
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-        userRepository.deleteAll();
+        mockMvc = buildMockMvc(context);
+        databaseCleaner.cleanAll();
     }
 
     @Test

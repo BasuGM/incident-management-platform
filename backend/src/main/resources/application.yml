@@ -46,6 +46,11 @@ app:
   auth:
     refresh-cookie-name: refresh_token
     refresh-cookie-secure: ${AUTH_REFRESH_COOKIE_SECURE:false}
+  bootstrap:
+    admin:
+      enabled: ${BOOTSTRAP_ADMIN_ENABLED:false}
+      email: ${BOOTSTRAP_ADMIN_EMAIL:}
+      password: ${BOOTSTRAP_ADMIN_PASSWORD:}
 
 logging:
   level:

@@ -16,6 +16,8 @@ User identity, sessions or tokens, roles, and API protection.
 
 Tenancy, teams, membership, and basic admin flows.
 
+**Status:** completed (organizations, organization memberships, teams, team memberships, tenant isolation, frontend org selector)
+
 ## Phase 4: Services
 
 Service catalog, ownership, and dependencies.

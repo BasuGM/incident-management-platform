@@ -17,7 +17,7 @@ repositories {
     mavenCentral()
 }
 
-extra["testcontainersVersion"] = "1.21.0"
+extra["testcontainersVersion"] = "1.21.4"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")

@@ -65,3 +65,27 @@
 **Decision:** Use Spring Security `BCryptPasswordEncoder` for password storage.
 
 **Reason:** Industry-standard adaptive hashing without custom crypto.
+
+## ADR-012: Global user role vs organization role
+
+**Decision:** Keep the existing global `User.role` (`ADMIN`, `ENGINEER`, `VIEWER`) for application-wide administration (for example `/api/v1/users`). Introduce separate organization membership roles (`OWNER`, `ADMIN`, `MEMBER`, `VIEWER`) on `organization_members`.
+
+**Reason:** Users can belong to multiple organizations with different privileges per tenant without overloading the global application role.
+
+## ADR-013: Organization tenant isolation
+
+**Decision:** Every organization-scoped API validates membership through `OrganizationAuthorizationService` before returning data. Cross-tenant access attempts return `403 Forbidden` (not `404`) to reduce IDOR leakage.
+
+**Reason:** UUIDs are guessable in theory; authorization must not trust client-supplied organization or team identifiers.
+
+## ADR-014: Single OWNER without transfer (Phase 3)
+
+**Decision:** Each organization has at least one `OWNER` membership. The API prevents demoting or removing the only owner. Ownership transfer is not implemented yet.
+
+**Reason:** Avoids orphan organizations while deferring a dedicated ownership transfer workflow.
+
+## ADR-015: Development bootstrap global ADMIN
+
+**Decision:** Optional `app.bootstrap.admin.*` configuration (disabled by default) can promote or create a global `ADMIN` user in non-production profiles only.
+
+**Reason:** Removes manual database promotion for local development without exposing a public ADMIN registration path.

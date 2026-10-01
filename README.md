@@ -1,6 +1,6 @@
 # Developer Incident Management Platform
 
-Foundation monorepo for a developer-focused incident management product. **Phase 2 (authentication, users, RBAC)** is implemented. Incident and organization features are not implemented yet.
+Foundation monorepo for a developer-focused incident management product. **Phase 2 (authentication, users, RBAC)** and **Phase 3 (organizations, memberships, teams)** are implemented. Incidents and services are not implemented yet.
 
 ## Architecture
 
@@ -98,6 +98,14 @@ Open [http://localhost:3000](http://localhost:3000). Register a user at `/regist
 
 Auth APIs live under `/api/v1/auth/*` on the backend (`http://localhost:8080`). Set `JWT_SECRET` in `backend/.env` before starting the API.
 
+Optional development bootstrap for a global `ADMIN` user (disabled by default):
+
+```text
+BOOTSTRAP_ADMIN_ENABLED=false
+BOOTSTRAP_ADMIN_EMAIL=
+BOOTSTRAP_ADMIN_PASSWORD=
+```
+
 ## Run backend tests
 
 Requires Docker (Testcontainers):
@@ -139,4 +147,4 @@ incident-management-platform/
 
 ## Suggested next step
 
-Implement **Phase 3: Organizations and teams** (tenancy, membership, and admin flows).
+Implement **Phase 4: Services** (service catalog and ownership).

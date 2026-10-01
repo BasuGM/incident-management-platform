@@ -52,6 +52,50 @@ Lists users (`ADMIN` only).
 
 Updates a user (`ADMIN` only).
 
+## Organizations (tenant-scoped)
+
+Organization roles: `OWNER`, `ADMIN`, `MEMBER`, `VIEWER` (membership role, separate from global `User.role`).
+
+### `GET /api/v1/organizations`
+
+Lists organizations where the current user is a member.
+
+### `POST /api/v1/organizations`
+
+Creates an organization; creator becomes `OWNER`.
+
+### `GET /api/v1/organizations/{organizationId}`
+
+Returns organization details for members only (`403` for non-members).
+
+### `PATCH /api/v1/organizations/{organizationId}`
+
+Updates organization metadata (`OWNER` only).
+
+### `GET|POST /api/v1/organizations/{organizationId}/members`
+
+List/add members (`OWNER`/`ADMIN` for writes).
+
+### `PATCH|DELETE /api/v1/organizations/{organizationId}/members/{userId}`
+
+Update/remove member roles (`OWNER`/`ADMIN` with owner safeguards).
+
+### `GET|POST /api/v1/organizations/{organizationId}/teams`
+
+List/create teams (`OWNER`/`ADMIN` for writes).
+
+### `GET|PATCH|DELETE /api/v1/organizations/{organizationId}/teams/{teamId}`
+
+Read/update/delete a team within the organization (`OWNER`/`ADMIN` for writes).
+
+### `GET|POST /api/v1/teams/{teamId}/members`
+
+List/add team members (`OWNER`/`ADMIN` in parent organization). Team members must already belong to the organization.
+
+### `DELETE /api/v1/teams/{teamId}/members/{userId}`
+
+Remove a team member (`OWNER`/`ADMIN`).
+
 ## Health endpoint
 
 ### `GET /api/v1/health`

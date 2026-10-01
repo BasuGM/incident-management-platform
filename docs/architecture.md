@@ -40,6 +40,13 @@ The backend starts as a **modular monolith**:
 - Role-based access control: `ADMIN`, `ENGINEER`, `VIEWER`
 - Method-level authorization for user APIs (`@PreAuthorize`)
 
+## Multi-tenancy (Phase 3)
+
+- Organizations with unique slugs and membership roles (`OWNER`, `ADMIN`, `MEMBER`, `VIEWER`)
+- Teams scoped to organizations; team members must be organization members
+- `OrganizationAuthorizationService` enforces tenant isolation on every organization/team operation
+- Frontend organization selector stores only the selected organization ID client-side; authorization remains server-side
+
 ## Environments
 
 - Local development: Docker Compose for PostgreSQL and Redis; frontend and backend run on the host

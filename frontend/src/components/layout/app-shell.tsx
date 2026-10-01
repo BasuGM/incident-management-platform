@@ -1,5 +1,6 @@
 "use client";
 
+import { OrganizationSelector } from "@/components/organization/organization-selector";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -11,6 +12,7 @@ type AppShellProps = {
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/organizations", label: "Organizations" },
   { href: "/profile", label: "Profile" },
   { href: "/users", label: "Users", adminOnly: true },
 ];
@@ -52,6 +54,7 @@ export function AppShell({ children }: AppShellProps) {
             </nav>
           </div>
           <div className="flex items-center gap-3">
+            <OrganizationSelector />
             {user && (
               <span className="hidden text-xs text-muted-foreground sm:inline">
                 {user.firstName} ({user.role})

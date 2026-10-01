@@ -36,7 +36,7 @@ public class AuthService {
         return issueTokens(user);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthTokens login(LoginRequest request) {
         User user = userService.getByEmail(request.email());
         if (!user.isEnabled() || !userService.passwordMatches(user, request.password())) {
