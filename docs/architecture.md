@@ -50,4 +50,14 @@ The backend starts as a **modular monolith**:
 ## Environments
 
 - Local development: Docker Compose for PostgreSQL and Redis; frontend and backend run on the host
+
+### Organization UI routes (Phase 3–4)
+
+- `/organizations` — list/create organizations
+- `/organizations/[organizationId]` — organization overview (members, teams, services preview)
+- `/organizations/[organizationId]/teams` — team list
+- `/organizations/[organizationId]/teams/[teamId]` — team detail
+- `/organizations/[organizationId]/services` — service catalog list and create (OWNER/ADMIN)
+- `/organizations/[organizationId]/services/[serviceId]` — service detail
+
 - Production topology is not implemented in the foundation phase

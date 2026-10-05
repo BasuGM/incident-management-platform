@@ -20,13 +20,15 @@ Migrations:
 | V2 | `users` and `refresh_tokens` tables for authentication |
 | V3 | Align `refresh_tokens.token_hash` to `VARCHAR(64)` for Hibernate `validate` |
 | V4 | `organizations`, `organization_members`, `teams`, `team_members` |
+| V5 | `services` (service catalog per organization) |
 
-### Multi-tenancy tables (V4)
+### Multi-tenancy tables (V4+)
 
 - `app.organizations` — tenant root (`slug` unique)
 - `app.organization_members` — user membership + organization role
-- `app.teams` — teams scoped to an organization (`organization_id`, `name` unique per org)
+- `app.teams` — teams scoped to an organization (case-insensitive unique `name` per org in application logic)
 - `app.team_members` — users on teams (user must already be an organization member)
+- `app.services` — services scoped to an organization; optional `team_id` (`ON DELETE SET NULL`); unique `(organization_id, slug)`; case-insensitive unique `name` per org in application logic
 
 ## Domain tables (authentication)
 

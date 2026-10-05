@@ -39,6 +39,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   const organizationsQuery = useQuery({
     queryKey: ["organizations"],
     queryFn: listOrganizations,
+    staleTime: 0,
   });
 
   const organizations = useMemo(

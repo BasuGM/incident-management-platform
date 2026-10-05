@@ -4,16 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getOrganization, listOrganizationMembers } from "@/lib/api/organizations";
+import { listServices } from "@/lib/api/services";
 import { createTeam, listTeams } from "@/lib/api/teams";
-import type { OrganizationRole } from "@/types/organization";
+import { canManageOrganization } from "@/lib/organization-rbac";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-
-function canManageTeams(role: OrganizationRole) {
-  return role === "OWNER" || role === "ADMIN";
-}
 
 export default function OrganizationDetailPage() {
   const params = useParams<{ organizationId: string }>();
@@ -37,6 +34,11 @@ export default function OrganizationDetailPage() {
     queryFn: () => listTeams(organizationId),
   });
 
+  const servicesQuery = useQuery({
+    queryKey: ["services", organizationId],
+    queryFn: () => listServices(organizationId),
+  });
+
   const createTeamMutation = useMutation({
     mutationFn: () =>
       createTeam(organizationId, {
@@ -51,7 +53,7 @@ export default function OrganizationDetailPage() {
   });
 
   const organization = organizationQuery.data;
-  const canManage = organization ? canManageTeams(organization.currentUserRole) : false;
+  const canManage = organization ? canManageOrganization(organization.currentUserRole) : false;
 
   return (
     <div className="space-y-8">
@@ -129,6 +131,37 @@ export default function OrganizationDetailPage() {
                     {team.name}
                   </Link>
                   {team.description ? ` — ${team.description}` : ""}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-base font-semibold">Services</h2>
+              <Link
+                href={`/organizations/${organizationId}/services`}
+                className="text-sm text-primary hover:underline"
+              >
+                View all services
+              </Link>
+            </div>
+            {servicesQuery.isLoading && (
+              <p className="text-sm text-muted-foreground">Loading…</p>
+            )}
+            {!servicesQuery.isLoading && servicesQuery.data?.length === 0 && (
+              <p className="text-sm text-muted-foreground">No services yet.</p>
+            )}
+            <ul className="space-y-2 text-sm">
+              {servicesQuery.data?.map((service) => (
+                <li key={service.id}>
+                  <Link
+                    href={`/organizations/${organizationId}/services/${service.id}`}
+                    className="text-primary hover:underline"
+                  >
+                    {service.name}
+                  </Link>
+                  {service.teamName ? ` — ${service.teamName}` : ""}
                 </li>
               ))}
             </ul>

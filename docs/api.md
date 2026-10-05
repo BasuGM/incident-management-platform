@@ -88,6 +88,18 @@ List/create teams (`OWNER`/`ADMIN` for writes).
 
 Read/update/delete a team within the organization (`OWNER`/`ADMIN` for writes).
 
+### `GET|POST /api/v1/organizations/{organizationId}/services`
+
+List/create services in the organization. Any organization member may list; `OWNER`/`ADMIN` may create.
+
+Create body: `name` (required), `slug` (required, organization slug rules, stored lowercase), optional `description`, optional `teamId` (must belong to the same organization).
+
+### `GET|PATCH|DELETE /api/v1/organizations/{organizationId}/services/{serviceId}`
+
+Read/update/delete a service (`OWNER`/`ADMIN` for writes). Cross-organization access returns `403`.
+
+PATCH updates only fields present in the body (same semantics as teams). `teamId` is updated when provided; omitting `teamId` leaves the owning team unchanged.
+
 ### `GET|POST /api/v1/teams/{teamId}/members`
 
 List/add team members (`OWNER`/`ADMIN` in parent organization). Team members must already belong to the organization.

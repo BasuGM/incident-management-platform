@@ -3,6 +3,7 @@ package com.example.incidentmanagement.support;
 import com.example.incidentmanagement.auth.RefreshTokenRepository;
 import com.example.incidentmanagement.organization.OrganizationMemberRepository;
 import com.example.incidentmanagement.organization.OrganizationRepository;
+import com.example.incidentmanagement.service.ServiceRepository;
 import com.example.incidentmanagement.team.TeamMemberRepository;
 import com.example.incidentmanagement.team.TeamRepository;
 import com.example.incidentmanagement.user.UserRepository;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DatabaseCleaner {
 
+    private final ServiceRepository serviceRepository;
     private final TeamMemberRepository teamMemberRepository;
     private final TeamRepository teamRepository;
     private final OrganizationMemberRepository organizationMemberRepository;
@@ -19,12 +21,14 @@ public class DatabaseCleaner {
     private final UserRepository userRepository;
 
     public DatabaseCleaner(
+            ServiceRepository serviceRepository,
             TeamMemberRepository teamMemberRepository,
             TeamRepository teamRepository,
             OrganizationMemberRepository organizationMemberRepository,
             OrganizationRepository organizationRepository,
             RefreshTokenRepository refreshTokenRepository,
             UserRepository userRepository) {
+        this.serviceRepository = serviceRepository;
         this.teamMemberRepository = teamMemberRepository;
         this.teamRepository = teamRepository;
         this.organizationMemberRepository = organizationMemberRepository;
@@ -34,6 +38,7 @@ public class DatabaseCleaner {
     }
 
     public void cleanAll() {
+        serviceRepository.deleteAll();
         teamMemberRepository.deleteAll();
         teamRepository.deleteAll();
         organizationMemberRepository.deleteAll();

@@ -36,3 +36,15 @@ export type TeamMember = {
   lastName: string;
   createdAt: string;
 };
+
+export type Service = {
+  id: string;
+  organizationId: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  teamId: string | null;
+  teamName: string | null;
+  createdAt: string;
+  updatedAt: string;
+};

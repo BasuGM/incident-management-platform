@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createOrganization } from "@/lib/api/organizations";
 import { getApiErrorMessage } from "@/lib/api/errors";
+import type { Organization } from "@/types/organization";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
@@ -20,7 +21,7 @@ function slugify(value: string) {
 }
 
 export default function OrganizationsPage() {
-  const { organizations, isLoading, refreshOrganizations } = useOrganizations();
+  const { organizations, isLoading } = useOrganizations();
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -28,12 +29,16 @@ export default function OrganizationsPage() {
 
   const createMutation = useMutation({
     mutationFn: createOrganization,
-    onSuccess: async () => {
-      setName("");
-      setSlug("");
+    onSuccess: async (created) => {
       setError(null);
-      await queryClient.invalidateQueries({ queryKey: ["organizations"] });
-      await refreshOrganizations();
+      await queryClient.cancelQueries({ queryKey: ["organizations"] });
+      queryClient.setQueryData<Organization[]>(["organizations"], (existing) => {
+        const current = existing ?? [];
+        if (current.some((organization) => organization.id === created.id)) {
+          return current;
+        }
+        return [...current, created];
+      });
     },
     onError: (err) => setError(getApiErrorMessage(err, "Failed to create organization")),
   });
@@ -53,7 +58,14 @@ export default function OrganizationsPage() {
           className="mt-4 grid gap-4 sm:grid-cols-2"
           onSubmit={(event) => {
             event.preventDefault();
-            createMutation.mutate({ name, slug: slug || slugify(name) });
+            const payload = {
+              name: name.trim(),
+              slug: (slug || slugify(name)).trim(),
+            };
+            setName("");
+            setSlug("");
+            setError(null);
+            createMutation.mutate(payload);
           }}
         >
           <div className="space-y-2">
