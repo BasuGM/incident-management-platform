@@ -100,6 +100,34 @@ Read/update/delete a service (`OWNER`/`ADMIN` for writes). Cross-organization ac
 
 PATCH updates only fields present in the body (same semantics as teams). `teamId` is updated when provided; omitting `teamId` leaves the owning team unchanged.
 
+### `GET|POST /api/v1/organizations/{organizationId}/incidents`
+
+List/create incidents in the organization (authentication required).
+
+**List:** any organization member. Query parameters: `page` (default `0`), `size` (default `20`, max `100`). Results are ordered by `createdAt` descending. Response shape:
+
+```json
+{
+  "content": [ /* IncidentResponse */ ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 0,
+  "totalPages": 0
+}
+```
+
+**Create:** `OWNER`, `ADMIN`, and `MEMBER` may create; `VIEWER` receives `403`. The authenticated user is always the reporter (client cannot set `reporterId`). Create body: `title` (required, max 200), optional `description` (max 10000), `severity` (required: `SEV1`–`SEV4`), optional `serviceId`, optional `commanderId` (must be organization members when set). Returns `201` with `IncidentResponse`. Initial `status` is `OPEN`; `incidentNumber` and `displayId` (`INC-{number}`) are server-assigned.
+
+### `GET|PATCH /api/v1/organizations/{organizationId}/incidents/{incidentId}`
+
+Read/update a single incident. Any organization member may read. Updates require `OWNER`, `ADMIN`, or `MEMBER` (`VIEWER` → `403`). Cross-organization access returns `403`.
+
+PATCH applies only fields present in the JSON body. `serviceId` and `commanderId` may be set to `null` to clear; omitting a field leaves it unchanged. Status transitions and cancellation rules are enforced in the service layer (`409` with codes such as `INVALID_INCIDENT_STATUS_TRANSITION`, `INCIDENT_NOT_EDITABLE`). Cancellation (`status: CANCELLED`) requires `OWNER` or `ADMIN`.
+
+`IncidentResponse` includes: `id`, `organizationId`, `incidentNumber`, `displayId`, `title`, `description`, `severity`, `status`, `serviceId`, `serviceName`, `reporterId`, `reporterEmail`, `reporterFirstName`, `reporterLastName`, `commanderId`, `commanderEmail`, `commanderFirstName`, `commanderLastName`, `createdAt`, `updatedAt`, `acknowledgedAt`, `resolvedAt`, `cancelledAt`.
+
+There is no `DELETE` incident endpoint in Phase 5.
+
 ### `GET|POST /api/v1/teams/{teamId}/members`
 
 List/add team members (`OWNER`/`ADMIN` in parent organization). Team members must already belong to the organization.

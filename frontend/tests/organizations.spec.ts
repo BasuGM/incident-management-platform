@@ -44,11 +44,12 @@ test.describe("organizations", () => {
     await page.getByLabel("Slug").fill(slug);
     await page.getByRole("button", { name: "Create organization" }).click();
 
-    await expect(page.getByRole("link", { name: "Acme Engineering" })).toBeVisible();
+    await expect(page.getByRole("cell", { name: "Acme Engineering" })).toBeVisible();
     await expect(page.getByText("OWNER")).toBeVisible();
     await expect(page.locator("select")).toContainText("Acme Engineering");
 
-    await page.getByRole("link", { name: "Acme Engineering" }).click();
+    await page.getByRole("link", { name: "Open" }).click();
+    await page.getByRole("navigation").getByRole("link", { name: "Teams", exact: true }).click();
     await page.getByLabel("Team name").fill("Payments");
     await page.getByLabel("Description").fill("Payment systems");
     await page.getByRole("button", { name: "Create team" }).click();
@@ -98,7 +99,8 @@ test.describe("organizations", () => {
     await page.getByRole("button", { name: "Login" }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
     await page.getByRole("link", { name: "Organizations" }).click();
-    await page.getByRole("link", { name: "Viewer Org" }).click();
+    await page.getByRole("link", { name: "Open" }).click();
+    await page.getByRole("navigation").getByRole("link", { name: "Teams", exact: true }).click();
     await expect(page.getByRole("button", { name: "Create team" })).toHaveCount(0);
     await expect(
       page.getByText("Team membership management requires organization OWNER or ADMIN."),

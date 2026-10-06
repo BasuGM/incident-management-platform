@@ -12,6 +12,7 @@ import {
 import { ApiError } from "@/lib/api/client";
 import { clearAccessToken, getAccessToken, setAccessToken } from "@/lib/auth/session";
 import type { AuthUser } from "@/types/auth";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
   useCallback,
@@ -39,7 +40,20 @@ function applyAuthResponse(response: Awaited<ReturnType<typeof loginUser>>) {
   return response.user;
 }
 
+async function invalidateTenantQueries(queryClient: ReturnType<typeof useQueryClient>) {
+  await queryClient.invalidateQueries({ queryKey: ["organizations"] });
+  await queryClient.invalidateQueries({ queryKey: ["organization"] });
+  await queryClient.invalidateQueries({ queryKey: ["incidents"] });
+  await queryClient.invalidateQueries({ queryKey: ["incident"] });
+  await queryClient.invalidateQueries({ queryKey: ["services"] });
+  await queryClient.invalidateQueries({ queryKey: ["service"] });
+  await queryClient.invalidateQueries({ queryKey: ["teams"] });
+  await queryClient.invalidateQueries({ queryKey: ["team"] });
+  await queryClient.invalidateQueries({ queryKey: ["organization-members"] });
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -80,12 +94,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (input: LoginInput) => {
     const response = await loginUser(input);
     setUser(applyAuthResponse(response));
-  }, []);
+    await invalidateTenantQueries(queryClient);
+  }, [queryClient]);
 
   const register = useCallback(async (input: RegisterInput) => {
     const response = await registerUser(input);
     setUser(applyAuthResponse(response));
-  }, []);
+    await invalidateTenantQueries(queryClient);
+  }, [queryClient]);
 
   const logout = useCallback(async () => {
     try {
@@ -97,8 +113,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       clearAccessToken();
       setUser(null);
+      await invalidateTenantQueries(queryClient);
     }
-  }, []);
+  }, [queryClient]);
 
   const refresh = useCallback(async () => {
     const response = await refreshSession();

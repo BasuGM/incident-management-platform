@@ -59,5 +59,8 @@ The backend starts as a **modular monolith**:
 - `/organizations/[organizationId]/teams/[teamId]` — team detail
 - `/organizations/[organizationId]/services` — service catalog list and create (OWNER/ADMIN)
 - `/organizations/[organizationId]/services/[serviceId]` — service detail
+- `/organizations/[organizationId]/incidents` — incident list (paginated)
+- `/organizations/[organizationId]/incidents/new` — create incident
+- `/organizations/[organizationId]/incidents/[incidentId]` — incident detail
 
 - Production topology is not implemented in the foundation phase

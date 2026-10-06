@@ -7,21 +7,15 @@ import { Label } from "@/components/ui/label";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function LoginPage() {
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.replace("/dashboard");
-    }
-  }, [isAuthenticated, isLoading, router]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();

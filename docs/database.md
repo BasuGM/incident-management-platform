@@ -21,6 +21,7 @@ Migrations:
 | V3 | Align `refresh_tokens.token_hash` to `VARCHAR(64)` for Hibernate `validate` |
 | V4 | `organizations`, `organization_members`, `teams`, `team_members` |
 | V5 | `services` (service catalog per organization) |
+| V6 | `incidents`, `organization_incident_counters` |
 
 ### Multi-tenancy tables (V4+)
 
@@ -29,6 +30,8 @@ Migrations:
 - `app.teams` — teams scoped to an organization (case-insensitive unique `name` per org in application logic)
 - `app.team_members` — users on teams (user must already be an organization member)
 - `app.services` — services scoped to an organization; optional `team_id` (`ON DELETE SET NULL`); unique `(organization_id, slug)`; case-insensitive unique `name` per org in application logic
+- `app.incidents` — incidents scoped to an organization; optional `service_id` (`ON DELETE RESTRICT`); unique `(organization_id, incident_number)`; reporter and optional commander reference `users` (`ON DELETE RESTRICT`)
+- `app.organization_incident_counters` — per-organization atomic counter for incident number allocation (`next_number BIGINT`)
 
 ## Domain tables (authentication)
 

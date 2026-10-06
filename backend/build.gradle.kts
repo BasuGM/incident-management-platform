@@ -1,7 +1,39 @@
+import org.springframework.boot.gradle.tasks.run.BootRun
+
 plugins {
     java
     id("org.springframework.boot") version "4.1.1"
     id("io.spring.dependency-management") version "1.1.7"
+}
+
+fun loadDotEnv(file: java.io.File): Map<String, String> {
+    if (!file.isFile) {
+        return emptyMap()
+    }
+    return file.readLines()
+        .asSequence()
+        .map { it.trim() }
+        .filter { it.isNotEmpty() && !it.startsWith("#") }
+        .mapNotNull { line ->
+            val withoutExport = if (line.startsWith("export ")) line.removePrefix("export ").trim() else line
+            val separator = withoutExport.indexOf('=')
+            if (separator <= 0) {
+                return@mapNotNull null
+            }
+            val key = withoutExport.substring(0, separator).trim()
+            if (key.isEmpty()) {
+                return@mapNotNull null
+            }
+            var value = withoutExport.substring(separator + 1).trim()
+            if (
+                (value.startsWith("\"") && value.endsWith("\"")) ||
+                    (value.startsWith("'") && value.endsWith("'"))
+            ) {
+                value = value.substring(1, value.length - 1)
+            }
+            key to value
+        }
+        .toMap()
 }
 
 group = "com.example"
@@ -52,4 +84,13 @@ tasks.withType<Test> {
 
 tasks.withType<JavaCompile> {
     options.compilerArgs.add("-parameters")
+}
+
+tasks.named<BootRun>("bootRun") {
+    val rootEnvFile = layout.projectDirectory.file("../.env").asFile
+    loadDotEnv(rootEnvFile).forEach { (key, value) ->
+        if (!System.getenv().containsKey(key)) {
+            environment(key, value)
+        }
+    }
 }

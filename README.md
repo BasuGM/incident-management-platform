@@ -147,4 +147,4 @@ incident-management-platform/
 
 ## Suggested next step
 
-Implement **Phase 4: Services** (service catalog and ownership).
+Implement **Phase 5: Incidents** (creation, status, severity, and core fields). Phase 4 (service catalog and organization UX) is complete — see [development plan](docs/development-plan.md).

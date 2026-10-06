@@ -1,10 +1,13 @@
 "use client";
 
 import { useOrganizations } from "@/components/organization/organization-provider";
+import { usePathname, useRouter } from "next/navigation";
 
 export function OrganizationSelector() {
   const { organizations, selectedOrganizationId, setSelectedOrganizationId, isLoading } =
     useOrganizations();
+  const pathname = usePathname();
+  const router = useRouter();
 
   if (isLoading) {
     return <span className="text-xs text-muted-foreground">Loading orgs…</span>;
@@ -20,7 +23,13 @@ export function OrganizationSelector() {
       <select
         className="h-8 rounded-md border border-input bg-background px-2 text-sm"
         value={selectedOrganizationId ?? ""}
-        onChange={(event) => setSelectedOrganizationId(event.target.value)}
+        onChange={(event) => {
+          const organizationId = event.target.value;
+          setSelectedOrganizationId(organizationId);
+          if (pathname.startsWith("/organizations/") && pathname !== "/organizations") {
+            router.push(`/organizations/${organizationId}`);
+          }
+        }}
       >
         {organizations.map((organization) => (
           <option key={organization.id} value={organization.id}>

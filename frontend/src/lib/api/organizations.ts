@@ -28,3 +28,33 @@ export async function addOrganizationMember(
     input,
   );
 }
+
+export async function updateOrganizationMember(
+  organizationId: string,
+  userId: string,
+  input: { role: OrganizationRole },
+): Promise<OrganizationMember> {
+  return getAuthenticatedClient().patch<OrganizationMember>(
+    `/api/v1/organizations/${organizationId}/members/${userId}`,
+    input,
+  );
+}
+
+export async function removeOrganizationMember(
+  organizationId: string,
+  userId: string,
+): Promise<void> {
+  await getAuthenticatedClient().delete(
+    `/api/v1/organizations/${organizationId}/members/${userId}`,
+  );
+}
+
+export async function updateOrganization(
+  organizationId: string,
+  input: { name?: string; slug?: string },
+): Promise<Organization> {
+  return getAuthenticatedClient().patch<Organization>(
+    `/api/v1/organizations/${organizationId}`,
+    input,
+  );
+}

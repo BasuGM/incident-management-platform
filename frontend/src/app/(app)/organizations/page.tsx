@@ -1,7 +1,8 @@
 "use client";
 
+import { OrganizationEmptyState } from "@/components/organization/organization-empty-state";
 import { useOrganizations } from "@/components/organization/organization-provider";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,7 +53,7 @@ export default function OrganizationsPage() {
         </p>
       </section>
 
-      <section className="rounded-lg border bg-card p-6">
+      <section id="create-organization" className="rounded-lg border bg-card p-6">
         <h2 className="text-base font-semibold">Create organization</h2>
         <form
           className="mt-4 grid gap-4 sm:grid-cols-2"
@@ -103,36 +104,38 @@ export default function OrganizationsPage() {
       <section className="space-y-4">
         <h2 className="text-base font-semibold">Your organizations</h2>
         {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
-        {!isLoading && organizations.length === 0 && (
-          <p className="text-sm text-muted-foreground">No organizations yet.</p>
-        )}
-        <div className="overflow-x-auto rounded-lg border">
-          <table className="min-w-full text-left text-sm">
-            <thead className="border-b bg-muted/40 text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 font-medium">Organization</th>
-                <th className="px-4 py-3 font-medium">Slug</th>
-                <th className="px-4 py-3 font-medium">Your role</th>
-              </tr>
-            </thead>
-            <tbody>
-              {organizations.map((organization) => (
-                <tr key={organization.id} className="border-b last:border-b-0">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/organizations/${organization.id}`}
-                      className="font-medium text-primary hover:underline"
-                    >
-                      {organization.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3">{organization.slug}</td>
-                  <td className="px-4 py-3">{organization.currentUserRole}</td>
+        {!isLoading && organizations.length === 0 && <OrganizationEmptyState showCreateLink={false} />}
+        {organizations.length > 0 && (
+          <div className="overflow-x-auto rounded-lg border">
+            <table className="min-w-full text-left text-sm">
+              <thead className="border-b bg-muted/40 text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Organization</th>
+                  <th className="px-4 py-3 font-medium">Slug</th>
+                  <th className="px-4 py-3 font-medium">Your role</th>
+                  <th className="px-4 py-3 font-medium">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {organizations.map((organization) => (
+                  <tr key={organization.id} className="border-b last:border-b-0">
+                    <td className="px-4 py-3 font-medium">{organization.name}</td>
+                    <td className="px-4 py-3">{organization.slug}</td>
+                    <td className="px-4 py-3">{organization.currentUserRole}</td>
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/organizations/${organization.id}`}
+                        className={buttonVariants({ variant: "outline", size: "sm" })}
+                      >
+                        Open
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   );

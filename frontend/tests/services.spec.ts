@@ -69,7 +69,7 @@ test.describe("services", () => {
     await expect(page).toHaveURL(/\/dashboard$/);
 
     await page.goto(`/organizations/${org.id}`);
-    await page.getByRole("link", { name: "View all services" }).click();
+    await page.getByRole("navigation").getByRole("link", { name: "Services" }).click();
     await expect(page.getByRole("heading", { level: 1, name: "Services" })).toBeVisible();
     await expect(page.getByText("No services yet.")).toBeVisible();
 

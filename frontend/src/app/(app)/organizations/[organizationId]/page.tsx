@@ -1,23 +1,18 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { OrganizationNav } from "@/components/organization/organization-nav";
+import { OrganizationRoleHint } from "@/components/organization/organization-role-hint";
 import { getOrganization, listOrganizationMembers } from "@/lib/api/organizations";
 import { listServices } from "@/lib/api/services";
-import { createTeam, listTeams } from "@/lib/api/teams";
+import { listTeams } from "@/lib/api/teams";
 import { canManageOrganization } from "@/lib/organization-rbac";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
 
 export default function OrganizationDetailPage() {
   const params = useParams<{ organizationId: string }>();
   const organizationId = params.organizationId;
-  const queryClient = useQueryClient();
-  const [teamName, setTeamName] = useState("");
-  const [teamDescription, setTeamDescription] = useState("");
 
   const organizationQuery = useQuery({
     queryKey: ["organization", organizationId],
@@ -39,132 +34,78 @@ export default function OrganizationDetailPage() {
     queryFn: () => listServices(organizationId),
   });
 
-  const createTeamMutation = useMutation({
-    mutationFn: () =>
-      createTeam(organizationId, {
-        name: teamName,
-        description: teamDescription || undefined,
-      }),
-    onSuccess: async () => {
-      setTeamName("");
-      setTeamDescription("");
-      await queryClient.invalidateQueries({ queryKey: ["teams", organizationId] });
-    },
-  });
-
   const organization = organizationQuery.data;
   const canManage = organization ? canManageOrganization(organization.currentUserRole) : false;
 
+  const cards = [
+    {
+      title: "Teams",
+      description: "Groups of people who own work in this organization.",
+      href: `/organizations/${organizationId}/teams`,
+      count: teamsQuery.data?.length,
+    },
+    {
+      title: "Services",
+      description: "Service catalog entries for this organization.",
+      href: `/organizations/${organizationId}/services`,
+      count: servicesQuery.data?.length,
+    },
+    {
+      title: "Incidents",
+      description: "Track production issues and response for this organization.",
+      href: `/organizations/${organizationId}/incidents`,
+    },
+    {
+      title: "Members",
+      description: "People with access to this organization and their roles.",
+      href: `/organizations/${organizationId}/members`,
+      count: membersQuery.data?.length,
+    },
+  ];
+
+  if (canManage) {
+    cards.push({
+      title: "Settings",
+      description: "Update organization name and slug.",
+      href: `/organizations/${organizationId}/settings`,
+      count: undefined,
+    });
+  }
+
   return (
-    <div className="space-y-8">
-      {organizationQuery.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+    <div className="space-y-6">
+      <Link href="/organizations" className="text-sm text-primary hover:underline">
+        ← All organizations
+      </Link>
+
+      {organizationQuery.isLoading && (
+        <p className="text-sm text-muted-foreground">Loading organization…</p>
+      )}
+
       {organization && (
         <>
           <section className="space-y-2">
             <h1 className="text-3xl font-semibold tracking-tight">{organization.name}</h1>
-            <p className="text-sm text-muted-foreground">
-              Slug: {organization.slug} · Your role: {organization.currentUserRole}
-            </p>
+            <p className="text-sm text-muted-foreground">Slug: {organization.slug}</p>
+            <OrganizationRoleHint organizationRole={organization.currentUserRole} />
           </section>
 
-          <section className="space-y-3">
-            <h2 className="text-base font-semibold">Members</h2>
-            {membersQuery.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
-            <ul className="space-y-2 text-sm">
-              {membersQuery.data?.map((member) => (
-                <li key={member.id} className="rounded border px-3 py-2">
-                  {member.firstName} {member.lastName} ({member.email}) — {member.role}
-                </li>
-              ))}
-            </ul>
-          </section>
+          <OrganizationNav organizationId={organizationId} canManage={canManage} />
 
-          <section className="space-y-4">
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="text-base font-semibold">Teams</h2>
+          <section className="grid gap-4 sm:grid-cols-2">
+            {cards.map((card) => (
               <Link
-                href={`/organizations/${organizationId}/teams`}
-                className="text-sm text-primary hover:underline"
+                key={card.href}
+                href={card.href}
+                className="rounded-lg border p-4 transition-colors hover:bg-muted/40"
               >
-                View all teams
+                <h2 className="text-base font-semibold">{card.title}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{card.description}</p>
+                {card.count !== undefined && (
+                  <p className="mt-2 text-xs text-muted-foreground">{card.count} total</p>
+                )}
               </Link>
-            </div>
-            {canManage && (
-              <form
-                className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  createTeamMutation.mutate();
-                }}
-              >
-                <div className="space-y-2">
-                  <Label htmlFor="team-name">Team name</Label>
-                  <Input
-                    id="team-name"
-                    value={teamName}
-                    onChange={(event) => setTeamName(event.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="team-description">Description</Label>
-                  <Input
-                    id="team-description"
-                    value={teamDescription}
-                    onChange={(event) => setTeamDescription(event.target.value)}
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <Button type="submit" disabled={createTeamMutation.isPending}>
-                    Create team
-                  </Button>
-                </div>
-              </form>
-            )}
-            <ul className="space-y-2 text-sm">
-              {teamsQuery.data?.map((team) => (
-                <li key={team.id}>
-                  <Link
-                    href={`/organizations/${organizationId}/teams/${team.id}`}
-                    className="text-primary hover:underline"
-                  >
-                    {team.name}
-                  </Link>
-                  {team.description ? ` — ${team.description}` : ""}
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="space-y-4">
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="text-base font-semibold">Services</h2>
-              <Link
-                href={`/organizations/${organizationId}/services`}
-                className="text-sm text-primary hover:underline"
-              >
-                View all services
-              </Link>
-            </div>
-            {servicesQuery.isLoading && (
-              <p className="text-sm text-muted-foreground">Loading…</p>
-            )}
-            {!servicesQuery.isLoading && servicesQuery.data?.length === 0 && (
-              <p className="text-sm text-muted-foreground">No services yet.</p>
-            )}
-            <ul className="space-y-2 text-sm">
-              {servicesQuery.data?.map((service) => (
-                <li key={service.id}>
-                  <Link
-                    href={`/organizations/${organizationId}/services/${service.id}`}
-                    className="text-primary hover:underline"
-                  >
-                    {service.name}
-                  </Link>
-                  {service.teamName ? ` — ${service.teamName}` : ""}
-                </li>
-              ))}
-            </ul>
+            ))}
           </section>
         </>
       )}

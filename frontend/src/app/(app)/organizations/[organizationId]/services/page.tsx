@@ -1,5 +1,6 @@
 "use client";
 
+import { OrganizationNav } from "@/components/organization/organization-nav";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
@@ -80,9 +81,8 @@ export default function OrganizationServicesPage() {
     },
   });
 
-  const canManage = organizationQuery.data
-    ? canManageOrganization(organizationQuery.data.currentUserRole)
-    : false;
+  const organization = organizationQuery.data;
+  const canManage = organization ? canManageOrganization(organization.currentUserRole) : false;
 
   const listError =
     servicesQuery.isError
@@ -103,6 +103,10 @@ export default function OrganizationServicesPage() {
           Service catalog for this organization.
         </p>
       </div>
+
+      {organization && (
+        <OrganizationNav organizationId={organizationId} canManage={canManage} />
+      )}
 
       {organizationQuery.isPending && (
         <p className="text-sm text-muted-foreground">Loading organization…</p>
