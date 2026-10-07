@@ -1,6 +1,7 @@
 package com.example.incidentmanagement.incident;
 
 import com.example.incidentmanagement.incident.dto.CreateIncidentRequest;
+import com.example.incidentmanagement.incident.dto.IncidentEventPageResponse;
 import com.example.incidentmanagement.incident.dto.IncidentPageResponse;
 import com.example.incidentmanagement.incident.dto.IncidentResponse;
 import com.example.incidentmanagement.incident.dto.UpdateIncidentRequest;
@@ -74,6 +75,21 @@ public class IncidentController {
             @PathVariable UUID incidentId,
             @AuthenticationPrincipal UserPrincipal principal) {
         return IncidentResponse.from(incidentService.getIncident(organizationId, incidentId, principal.getId()));
+    }
+
+    @GetMapping("/{incidentId}/events")
+    public IncidentEventPageResponse listIncidentEvents(
+            @PathVariable UUID organizationId,
+            @PathVariable UUID incidentId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(Math.max(page, 0), pageSize);
+        return IncidentEventPageResponse.from(
+                incidentService.getIncidentEvents(organizationId, incidentId, principal.getId(), pageable),
+                organizationId,
+                incidentId);
     }
 
     @PatchMapping("/{incidentId}")

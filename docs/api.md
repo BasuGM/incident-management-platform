@@ -128,6 +128,30 @@ PATCH applies only fields present in the JSON body. `serviceId` and `commanderId
 
 There is no `DELETE` incident endpoint in Phase 5.
 
+### `GET /api/v1/organizations/{organizationId}/incidents/{incidentId}/events`
+
+Read-only incident timeline (authentication required). Any organization member (`OWNER`, `ADMIN`, `MEMBER`, `VIEWER`) may list events. Cross-organization access returns `403` (same semantics as incident read). Unauthenticated requests return `401`.
+
+Query parameters: `page` (default `0`), `size` (default `20`, max `100`; values above `100` are capped). Events are ordered by `createdAt` descending, then `id` descending (newest first).
+
+Response shape:
+
+```json
+{
+  "content": [ /* IncidentEventResponse */ ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 0,
+  "totalPages": 0
+}
+```
+
+`IncidentEventResponse` fields: `id`, `incidentId`, `organizationId`, `actorId`, `actorEmail`, `actorFirstName`, `actorLastName`, `type`, `payload`, `createdAt`.
+
+`type` is one of: `INCIDENT_CREATED`, `STATUS_CHANGED`, `SEVERITY_CHANGED`, `SERVICE_CHANGED`, `COMMANDER_CHANGED`, `TITLE_CHANGED`, `DESCRIPTION_CHANGED`.
+
+`payload` is structured JSON (for example `{"old":"SEV2","new":"SEV1"}` for `SEVERITY_CHANGED`, or creation snapshot fields for `INCIDENT_CREATED`). Events are append-only and created internally by the API when incidents are created or updated; there are no REST endpoints to create, update, or delete events.
+
 ### `GET|POST /api/v1/teams/{teamId}/members`
 
 List/add team members (`OWNER`/`ADMIN` in parent organization). Team members must already belong to the organization.

@@ -40,6 +40,14 @@ The backend starts as a **modular monolith**:
 - Role-based access control: `ADMIN`, `ENGINEER`, `VIEWER`
 - Method-level authorization for user APIs (`@PreAuthorize`)
 
+## Incidents (Phase 5–6)
+
+- `Incident` — organization-scoped incident record (status, severity, service, commander, milestones)
+- `IncidentEvent` — append-only audit events tied to an incident and organization
+- `IncidentService` appends events via `IncidentEventRecorder` in the same database transaction as incident create/update (no separate transaction or async emission)
+- Timeline read API: `GET .../incidents/{incidentId}/events` loads paginated `IncidentEvent` rows scoped by `organizationId` + `incidentId` after the same incident read authorization as `GET .../incidents/{incidentId}`
+- Incident detail UI renders a read-only timeline (human-readable event text + pagination via “Load more”) from that API; TanStack Query keys include `organizationId`, `incidentId`, and the current user id
+
 ## Multi-tenancy (Phase 3)
 
 - Organizations with unique slugs and membership roles (`OWNER`, `ADMIN`, `MEMBER`, `VIEWER`)

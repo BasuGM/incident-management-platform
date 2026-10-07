@@ -43,6 +43,12 @@ class IncidentServiceTest {
     @Mock
     private IncidentNumberAllocator incidentNumberAllocator;
 
+    @Mock
+    private IncidentEventRecorder incidentEventRecorder;
+
+    @Mock
+    private IncidentEventRepository incidentEventRepository;
+
     @InjectMocks
     private IncidentService incidentService;
 
@@ -130,6 +136,7 @@ class IncidentServiceTest {
             assertThat(created.getReporter()).isEqualTo(memberUser);
             assertThat(created.getAcknowledgedAt()).isNull();
             verify(incidentNumberAllocator).allocateNextIncidentNumber(organizationId);
+            verify(incidentEventRecorder).recordCreated(any(Incident.class), eq(memberUser));
         }
 
         @Test

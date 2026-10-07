@@ -4,6 +4,7 @@ import {
   IncidentSeverityBadge,
   IncidentStatusBadge,
 } from "@/components/incident/incident-badges";
+import { IncidentTimeline } from "@/components/incident/incident-timeline";
 import { OrganizationNav } from "@/components/organization/organization-nav";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
@@ -83,6 +84,7 @@ export default function IncidentDetailPage() {
   const invalidateIncident = async () => {
     await queryClient.invalidateQueries({ queryKey: ["incident", organizationId, incidentId] });
     await queryClient.invalidateQueries({ queryKey: ["incidents", organizationId] });
+    await queryClient.invalidateQueries({ queryKey: ["incident-events", organizationId, incidentId] });
   };
 
   const statusMutation = useMutation({
@@ -389,6 +391,8 @@ export default function IncidentDetailPage() {
               </div>
             </section>
           )}
+
+          <IncidentTimeline organizationId={organizationId} incidentId={incidentId} />
         </>
       )}
     </div>

@@ -2,6 +2,7 @@ import { getAuthenticatedClient } from "@/lib/api/authenticated-client";
 import type {
   CreateIncidentInput,
   Incident,
+  IncidentEventPage,
   IncidentPage,
   UpdateIncidentBody,
 } from "@/types/incident";
@@ -44,5 +45,20 @@ export async function updateIncident(
   return getAuthenticatedClient().patch<Incident>(
     `/api/v1/organizations/${organizationId}/incidents/${incidentId}`,
     body,
+  );
+}
+
+export async function getIncidentEvents(
+  organizationId: string,
+  incidentId: string,
+  page = 0,
+  size = 20,
+): Promise<IncidentEventPage> {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  });
+  return getAuthenticatedClient().get<IncidentEventPage>(
+    `/api/v1/organizations/${organizationId}/incidents/${incidentId}/events?${params.toString()}`,
   );
 }

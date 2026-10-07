@@ -53,3 +53,35 @@ export type UpdateIncidentBody = {
   commanderId?: string | null;
   status?: IncidentStatus;
 };
+
+export type IncidentEventType =
+  | "INCIDENT_CREATED"
+  | "STATUS_CHANGED"
+  | "SEVERITY_CHANGED"
+  | "SERVICE_CHANGED"
+  | "COMMANDER_CHANGED"
+  | "TITLE_CHANGED"
+  | "DESCRIPTION_CHANGED";
+
+export type IncidentEventPayload = Record<string, unknown>;
+
+export type IncidentEvent = {
+  id: string;
+  incidentId: string;
+  organizationId: string;
+  actorId: string;
+  actorEmail: string;
+  actorFirstName: string;
+  actorLastName: string;
+  type: IncidentEventType;
+  payload: IncidentEventPayload;
+  createdAt: string;
+};
+
+export type IncidentEventPage = {
+  content: IncidentEvent[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+};

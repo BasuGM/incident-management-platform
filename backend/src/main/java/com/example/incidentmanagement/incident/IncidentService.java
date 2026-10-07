@@ -8,6 +8,7 @@ import com.example.incidentmanagement.organization.OrganizationRole;
 import com.example.incidentmanagement.user.User;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -29,14 +30,20 @@ public class IncidentService {
     private final IncidentRepository incidentRepository;
     private final OrganizationAuthorizationService organizationAuthorizationService;
     private final IncidentNumberAllocator incidentNumberAllocator;
+    private final IncidentEventRecorder incidentEventRecorder;
+    private final IncidentEventRepository incidentEventRepository;
 
     public IncidentService(
             IncidentRepository incidentRepository,
             OrganizationAuthorizationService organizationAuthorizationService,
-            IncidentNumberAllocator incidentNumberAllocator) {
+            IncidentNumberAllocator incidentNumberAllocator,
+            IncidentEventRecorder incidentEventRecorder,
+            IncidentEventRepository incidentEventRepository) {
         this.incidentRepository = incidentRepository;
         this.organizationAuthorizationService = organizationAuthorizationService;
         this.incidentNumberAllocator = incidentNumberAllocator;
+        this.incidentEventRecorder = incidentEventRecorder;
+        this.incidentEventRepository = incidentEventRepository;
     }
 
     @Transactional
@@ -83,6 +90,7 @@ public class IncidentService {
         incident.setCommander(commander);
 
         Incident saved = incidentRepository.save(incident);
+        incidentEventRecorder.recordCreated(saved, reporter);
         return reload(organizationId, saved.getId());
     }
 
@@ -96,6 +104,14 @@ public class IncidentService {
     public Page<Incident> listIncidents(UUID organizationId, UUID callerId, Pageable pageable) {
         organizationAuthorizationService.requireOrganizationMember(organizationId, callerId);
         return incidentRepository.findByOrganizationId(organizationId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<IncidentEvent> getIncidentEvents(
+            UUID organizationId, UUID incidentId, UUID callerId, Pageable pageable) {
+        organizationAuthorizationService.requireIncidentInOrganization(organizationId, incidentId, callerId);
+        return incidentEventRepository.findByOrganization_IdAndIncident_IdOrderByCreatedAtDescIdDesc(
+                organizationId, incidentId, pageable);
     }
 
     @Transactional
@@ -118,39 +134,75 @@ public class IncidentService {
 
         assertMutable(incident);
 
+        User actor = caller.getUser();
+        String previousTitle = incident.getTitle();
+        String previousDescription = incident.getDescription();
+        IncidentSeverity previousSeverity = incident.getSeverity();
+        UUID previousServiceId = incident.getService() == null ? null : incident.getService().getId();
+        UUID previousCommanderId = incident.getCommander() == null ? null : incident.getCommander().getId();
+        IncidentStatus previousStatus = incident.getStatus();
+
         if (update.isTitleSet()) {
-            incident.setTitle(requireNonBlankTitle(update.getTitle()));
+            String newTitle = requireNonBlankTitle(update.getTitle());
+            if (!newTitle.equals(previousTitle)) {
+                incident.setTitle(newTitle);
+                incidentEventRecorder.recordTitleChanged(incident, actor, previousTitle, newTitle);
+            }
         }
         if (update.isDescriptionSet()) {
-            incident.setDescription(trimToNull(update.getDescription()));
+            String newDescription = trimToNull(update.getDescription());
+            if (!Objects.equals(previousDescription, newDescription)) {
+                incident.setDescription(newDescription);
+                incidentEventRecorder.recordDescriptionChanged(
+                        incident, actor, previousDescription, newDescription);
+            }
         }
         if (update.isSeveritySet()) {
             if (update.getSeverity() == null) {
                 throw new ConflictException("VALIDATION_ERROR", "Severity is required");
             }
-            incident.setSeverity(update.getSeverity());
+            if (update.getSeverity() != previousSeverity) {
+                incident.setSeverity(update.getSeverity());
+                incidentEventRecorder.recordSeverityChanged(
+                        incident, actor, previousSeverity, update.getSeverity());
+            }
         }
         if (update.isServiceSet()) {
-            if (update.isServiceClear()) {
-                incident.setService(null);
-            } else {
-                com.example.incidentmanagement.service.Service service =
-                        organizationAuthorizationService.requireServiceInOrganization(
-                                organizationId, update.getServiceId(), callerId);
-                incident.setService(service);
+            UUID newServiceId = update.isServiceClear() ? null : update.getServiceId();
+            if (!Objects.equals(previousServiceId, newServiceId)) {
+                if (update.isServiceClear()) {
+                    incident.setService(null);
+                } else {
+                    com.example.incidentmanagement.service.Service service =
+                            organizationAuthorizationService.requireServiceInOrganization(
+                                    organizationId, update.getServiceId(), callerId);
+                    incident.setService(service);
+                }
+                UUID currentServiceId = incident.getService() == null ? null : incident.getService().getId();
+                incidentEventRecorder.recordServiceChanged(incident, actor, previousServiceId, currentServiceId);
             }
         }
         if (update.isCommanderSet()) {
-            if (update.isCommanderClear()) {
-                incident.setCommander(null);
-            } else {
-                OrganizationMember commanderMember = organizationAuthorizationService.requireOrganizationMember(
-                        organizationId, update.getCommanderId(), callerId);
-                incident.setCommander(commanderMember.getUser());
+            UUID newCommanderId = update.isCommanderClear() ? null : update.getCommanderId();
+            if (!Objects.equals(previousCommanderId, newCommanderId)) {
+                if (update.isCommanderClear()) {
+                    incident.setCommander(null);
+                } else {
+                    OrganizationMember commanderMember = organizationAuthorizationService.requireOrganizationMember(
+                            organizationId, update.getCommanderId(), callerId);
+                    incident.setCommander(commanderMember.getUser());
+                }
+                UUID currentCommanderId = incident.getCommander() == null ? null : incident.getCommander().getId();
+                incidentEventRecorder.recordCommanderChanged(incident, actor, previousCommanderId, currentCommanderId);
             }
         }
         if (update.isStatusSet()) {
-            applyStatusTransition(incident, update.getStatus(), caller);
+            if (update.getStatus() != previousStatus) {
+                applyStatusTransition(incident, update.getStatus(), caller);
+                incidentEventRecorder.recordStatusChanged(incident, actor, previousStatus, incident.getStatus());
+            } else {
+                applyStatusTransition(incident, update.getStatus(), caller);
+            }
         }
 
         Incident saved = incidentRepository.save(incident);

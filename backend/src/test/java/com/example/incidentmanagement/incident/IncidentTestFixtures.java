@@ -7,6 +7,7 @@ import com.example.incidentmanagement.service.ServiceRepository;
 import com.example.incidentmanagement.user.User;
 import com.example.incidentmanagement.user.UserRepository;
 import com.example.incidentmanagement.user.UserRole;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -57,5 +58,14 @@ final class IncidentTestFixtures {
 
     static String uniqueSlug(String prefix) {
         return prefix + "-" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    static IncidentEvent newEvent(
+            Organization organization,
+            Incident incident,
+            User actor,
+            IncidentEventType eventType,
+            Map<String, Object> payload) {
+        return IncidentEvent.create(organization, incident, actor, eventType, payload);
     }
 }

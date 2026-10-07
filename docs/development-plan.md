@@ -53,7 +53,27 @@ Incident creation, status, severity, and core fields.
 
 ## Phase 6: Incident timeline / comments / assignment
 
-Collaboration during active incidents.
+Immutable incident audit events and a read-only timeline for incident history (Phase 6 scope). **Deferred from Phase 6:** incident comments, @mentions, assignment workflows beyond existing commander field, notifications, on-call/escalation, postmortems, and deployment correlation.
+
+**Status:** completed
+
+### Phase 6 steps
+
+| Step | Scope | Status |
+|------|--------|--------|
+| 1 | `app.incident_events`, domain model, repository, persistence tests | complete |
+| 2 | Transactional event generation from `IncidentService` via `IncidentEventRecorder` | complete |
+| 3 | Read-only paginated timeline REST API | complete |
+| 4 | Frontend incident detail timeline UI | complete |
+| 5 | Audit, verification, sign-off | complete |
+
+### Delivered (Phase 6)
+
+- Append-only incident events (`INCIDENT_CREATED`, field/status changes) with JSONB payloads
+- Same-transaction incident mutation + event recording (rollback-tested)
+- `GET .../incidents/{incidentId}/events` for organization members (tenant-scoped)
+- Incident detail timeline: human-readable events, actor display, load-more pagination, loading/empty/error states
+- Automated coverage: backend integration/unit tests; Playwright incident timeline flows
 
 ## Phase 7: Postmortems
 
