@@ -23,6 +23,7 @@ Migrations:
 | V5 | `services` (service catalog per organization) |
 | V6 | `incidents`, `organization_incident_counters` |
 | V7 | `incident_events` (append-only incident audit timeline) |
+| V8 | `incident_comments` (soft-deletable incident discussion) |
 
 ### Multi-tenancy tables (V4+)
 
@@ -34,6 +35,7 @@ Migrations:
 - `app.incidents` — incidents scoped to an organization; optional `service_id` (`ON DELETE RESTRICT`); unique `(organization_id, incident_number)`; reporter and optional commander reference `users` (`ON DELETE RESTRICT`)
 - `app.organization_incident_counters` — per-organization atomic counter for incident number allocation (`next_number BIGINT`)
 - `app.incident_events` — immutable, append-only events for an incident (`type`, `payload JSONB`, `actor_id`, `organization_id`, `created_at`); FK to `incidents` (`ON DELETE CASCADE`), `organizations` (`ON DELETE CASCADE`), `users` (`ON DELETE RESTRICT`)
+- `app.incident_comments` — user-authored plain-text comments (`body` up to 5000 characters, `author_id`, `organization_id`, `incident_id`, `created_at`, `updated_at`, `deleted_at` for soft delete); FK to `incidents` / `organizations` (`ON DELETE CASCADE`), `users` (`ON DELETE RESTRICT`); list ordering `created_at ASC`, `id ASC` via index `(organization_id, incident_id, created_at, id)`
 
 ## Domain tables (authentication)
 

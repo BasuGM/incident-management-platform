@@ -68,4 +68,9 @@ final class IncidentTestFixtures {
             Map<String, Object> payload) {
         return IncidentEvent.create(organization, incident, actor, eventType, payload);
     }
+
+    static IncidentComment newComment(
+            Organization organization, Incident incident, User author, String body) {
+        return IncidentComment.create(organization, incident, author, body);
+    }
 }

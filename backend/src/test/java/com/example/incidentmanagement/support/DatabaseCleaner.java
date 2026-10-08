@@ -3,6 +3,7 @@ package com.example.incidentmanagement.support;
 import com.example.incidentmanagement.auth.RefreshTokenRepository;
 import com.example.incidentmanagement.organization.OrganizationMemberRepository;
 import com.example.incidentmanagement.organization.OrganizationRepository;
+import com.example.incidentmanagement.incident.IncidentCommentRepository;
 import com.example.incidentmanagement.incident.IncidentEventRepository;
 import com.example.incidentmanagement.incident.IncidentRepository;
 import com.example.incidentmanagement.incident.OrganizationIncidentCounterRepository;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DatabaseCleaner {
 
+    private final IncidentCommentRepository incidentCommentRepository;
     private final IncidentEventRepository incidentEventRepository;
     private final IncidentRepository incidentRepository;
     private final OrganizationIncidentCounterRepository organizationIncidentCounterRepository;
@@ -27,6 +29,7 @@ public class DatabaseCleaner {
     private final UserRepository userRepository;
 
     public DatabaseCleaner(
+            IncidentCommentRepository incidentCommentRepository,
             IncidentEventRepository incidentEventRepository,
             IncidentRepository incidentRepository,
             OrganizationIncidentCounterRepository organizationIncidentCounterRepository,
@@ -37,6 +40,7 @@ public class DatabaseCleaner {
             OrganizationRepository organizationRepository,
             RefreshTokenRepository refreshTokenRepository,
             UserRepository userRepository) {
+        this.incidentCommentRepository = incidentCommentRepository;
         this.incidentEventRepository = incidentEventRepository;
         this.incidentRepository = incidentRepository;
         this.organizationIncidentCounterRepository = organizationIncidentCounterRepository;
@@ -50,6 +54,7 @@ public class DatabaseCleaner {
     }
 
     public void cleanAll() {
+        incidentCommentRepository.deleteAll();
         incidentEventRepository.deleteAll();
         incidentRepository.deleteAll();
         organizationIncidentCounterRepository.deleteAll();

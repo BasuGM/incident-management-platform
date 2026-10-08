@@ -75,42 +75,78 @@ Immutable incident audit events and a read-only timeline for incident history (P
 - Incident detail timeline: human-readable events, actor display, load-more pagination, loading/empty/error states
 - Automated coverage: backend integration/unit tests; Playwright incident timeline flows
 
-## Phase 7: Postmortems
+## Phase 7: Incident comments & collaboration
+
+Organization-scoped plain-text discussion on incidents, separate from the Phase 6 immutable audit timeline.
+
+**Status:** completed — see [Phase 7 comments design](phase-7-comments-design.md)
+
+**Deferred from Phase 7:** @mentions, attachments, Markdown, notifications, and timeline/audit integration for comments.
+
+| Step | Scope | Status |
+|------|--------|--------|
+| 1 | `app.incident_comments`, `IncidentComment`, repository, persistence tests | complete |
+| 2 | Authorization + service layer | complete |
+| 3 | REST API + DTOs + controller integration tests + API docs | complete |
+| 4 | Backend comment API audit & hardening | complete |
+| 5 | Frontend API/types | complete |
+| 6 | Comment UI | complete |
+| 7 | Playwright E2E | complete |
+| 8 | Final audit, documentation & sign-off | complete |
+| 9 | Phase 7 sign-off | complete (Step 8) |
+
+### Delivered (Phase 7)
+
+- `app.incident_comments` with soft delete (tombstones in list responses), chronological pagination, and terminal-incident write lock
+- Tenant-scoped REST API: `GET` / `POST` / `PATCH` / `DELETE` on `.../incidents/{incidentId}/comments`
+- Organization-role RBAC (VIEWER read-only; author-only edit; OWNER/ADMIN moderation via delete only); no `IncidentEvent` coupling
+- Incident detail Comments section (plain text, load-more, composer/edit/delete, tombstones) before Timeline
+- Automated coverage: backend integration/unit tests; Playwright incident comment flows
+
+### Verified (Phase 7 completion)
+
+- `./gradlew clean test` — **177/177 PASS**
+- `npm run lint` — PASS
+- `npm run typecheck` — PASS
+- `npm run build` — PASS
+- `npx playwright test` — **30/30 PASS**
+
+## Phase 8: Postmortems
 
 Structured follow-up and learning loops.
 
-## Phase 8: On-call schedules
+## Phase 9: On-call schedules
 
 Rotations and coverage.
 
-## Phase 9: Escalation policies
+## Phase 10: Escalation policies
 
 Automated escalation paths.
 
-## Phase 10: Notifications
+## Phase 11: Notifications
 
 Email, chat, and push channels.
 
-## Phase 11: Deployments
+## Phase 12: Deployments
 
 Change events correlated with incidents.
 
-## Phase 12: Dashboard / metrics
+## Phase 13: Dashboard / metrics
 
 Operational visibility and reporting.
 
-## Phase 13: Audit logs
+## Phase 14: Audit logs
 
 Immutable activity history.
 
-## Phase 14: Webhooks / integrations
+## Phase 15: Webhooks / integrations
 
 External monitoring and tooling.
 
-## Phase 15: Redis / WebSockets / advanced infrastructure
+## Phase 16: Redis / WebSockets / advanced infrastructure
 
 Caching, rate limits, real-time updates, and async processing.
 
-## Phase 16: Production hardening
+## Phase 17: Production hardening
 
 Security review, observability, performance, and deployment automation.

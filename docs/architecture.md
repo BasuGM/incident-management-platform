@@ -48,6 +48,15 @@ The backend starts as a **modular monolith**:
 - Timeline read API: `GET .../incidents/{incidentId}/events` loads paginated `IncidentEvent` rows scoped by `organizationId` + `incidentId` after the same incident read authorization as `GET .../incidents/{incidentId}`
 - Incident detail UI renders a read-only timeline (human-readable event text + pagination via “Load more”) from that API; TanStack Query keys include `organizationId`, `incidentId`, and the current user id
 
+### Comments (Phase 7 — complete)
+
+- **`IncidentComment`** — persistence/domain layer (`app.incident_comments`, repository, soft delete via `deleted_at` with body cleared on delete); separate from immutable `IncidentEvent`
+- **`IncidentCommentService`** — comment CRUD business rules and organization RBAC (read: all members; create: OWNER/ADMIN/MEMBER; author-only edit; author or OWNER/ADMIN soft-delete; terminal incident write lock); no `IncidentEvent` emission
+- **REST API** — tenant-scoped `.../incidents/{incidentId}/comments` (GET/POST/PATCH/DELETE), DTOs, thin `IncidentCommentController`; deleted comments remain visible as tombstones in list responses; `touchAuthor()` + repository `@EntityGraph` avoid N+1 and keep author fields serializable with `open-in-view: false`
+- **Frontend** — comment API/types, TanStack Query keys scoped by organization, incident, page, size, and user; incident detail Comments section (plain text via `whitespace-pre-wrap`, RBAC-aware composer/edit/delete, tombstones, load-more) placed before Timeline
+- **Intentionally excluded from Phase 7:** comment rows in `IncidentEvent`, @mentions, attachments, Markdown/rich text, notifications, WebSockets/SSE/polling
+- Design reference: [phase-7-comments-design.md](phase-7-comments-design.md)
+
 ## Multi-tenancy (Phase 3)
 
 - Organizations with unique slugs and membership roles (`OWNER`, `ADMIN`, `MEMBER`, `VIEWER`)

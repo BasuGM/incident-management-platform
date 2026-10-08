@@ -85,3 +85,34 @@ export type IncidentEventPage = {
   totalElements: number;
   totalPages: number;
 };
+
+export type IncidentComment = {
+  id: string;
+  organizationId: string;
+  incidentId: string;
+  authorId: string;
+  authorEmail: string;
+  authorFirstName: string;
+  authorLastName: string;
+  body: string;
+  deleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+};
+
+export type IncidentCommentPage = {
+  content: IncidentComment[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+};
+
+export type CreateIncidentCommentInput = {
+  body: string;
+};
+
+export type UpdateIncidentCommentInput = {
+  body: string;
+};
