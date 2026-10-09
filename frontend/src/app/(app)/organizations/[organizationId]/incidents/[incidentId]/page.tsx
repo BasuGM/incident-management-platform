@@ -5,6 +5,7 @@ import {
   IncidentStatusBadge,
 } from "@/components/incident/incident-badges";
 import { IncidentComments } from "@/components/incident/incident-comments";
+import { IncidentPostmortemSection } from "@/components/incident/incident-postmortem-section";
 import { IncidentTimeline } from "@/components/incident/incident-timeline";
 import { OrganizationNav } from "@/components/organization/organization-nav";
 import { Button } from "@/components/ui/button";
@@ -392,6 +393,13 @@ export default function IncidentDetailPage() {
               </div>
             </section>
           )}
+
+          <IncidentPostmortemSection
+            organizationId={organizationId}
+            incidentId={incidentId}
+            organizationRole={role}
+            incidentStatus={incident.status}
+          />
 
           <IncidentComments
             organizationId={organizationId}

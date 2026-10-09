@@ -57,6 +57,15 @@ The backend starts as a **modular monolith**:
 - **Intentionally excluded from Phase 7:** comment rows in `IncidentEvent`, @mentions, attachments, Markdown/rich text, notifications, WebSockets/SSE/polling
 - Design reference: [phase-7-comments-design.md](phase-7-comments-design.md)
 
+### Postmortems (Phase 8)
+
+- **`IncidentPostmortem`** — at most one postmortem per incident (`app.incident_postmortems`); plain-text sections; lifecycle `DRAFT` → `PUBLISHED` → optional `ARCHIVED`; writes only when parent incident is **`RESOLVED`**
+- **`IncidentPostmortemService`** — create/read/update/publish/unpublish/archive/unarchive/delete draft; organization RBAC; resolved-incident write eligibility; **no** `IncidentEvent` emission
+- **REST API** — singleton `.../incidents/{incidentId}/postmortem` plus paginated `GET .../organizations/{organizationId}/postmortems` (default `status=PUBLISHED`)
+- **Frontend** — Postmortem section on incident detail (between metadata and Comments); org library at `/organizations/[organizationId]/postmortems`; TanStack Query keys scoped by organization, incident, user, list filters, and pagination
+- **Intentionally excluded from Phase 8:** structured action items, review queues, Markdown, attachments, new audit event types on incidents
+- Design reference: [phase-8-postmortems-design.md](phase-8-postmortems-design.md)
+
 ## Multi-tenancy (Phase 3)
 
 - Organizations with unique slugs and membership roles (`OWNER`, `ADMIN`, `MEMBER`, `VIEWER`)
@@ -79,5 +88,6 @@ The backend starts as a **modular monolith**:
 - `/organizations/[organizationId]/incidents` — incident list (paginated)
 - `/organizations/[organizationId]/incidents/new` — create incident
 - `/organizations/[organizationId]/incidents/[incidentId]` — incident detail
+- `/organizations/[organizationId]/postmortems` — organization postmortems library (Phase 8)
 
 - Production topology is not implemented in the foundation phase

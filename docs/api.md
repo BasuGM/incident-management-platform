@@ -180,6 +180,41 @@ Response shape:
 
 `IncidentCommentResponse` fields: `id`, `organizationId`, `incidentId`, `authorId`, `authorEmail`, `authorFirstName`, `authorLastName`, `body`, `deleted`, `createdAt`, `updatedAt`, `deletedAt`.
 
+### Postmortems (Phase 8)
+
+Organization-scoped structured post-incident write-ups. Business rules and authorization are enforced in `IncidentPostmortemService`; paths always include `organizationId` and (for singleton routes) `incidentId`. At most **one** postmortem per incident. Writes require incident status **`RESOLVED`** (`CANCELLED` and non-resolved statuses return `409` `INCIDENT_NOT_ELIGIBLE_FOR_POSTMORTEM`). No new `IncidentEvent` types.
+
+#### `GET|POST|PATCH|DELETE /api/v1/organizations/{organizationId}/incidents/{incidentId}/postmortem`
+
+**Get (`GET`):** any organization member. Returns **200** + `IncidentPostmortemResponse`. **404** `POSTMORTEM_NOT_FOUND` when no row exists. Cross-organization access returns **403**.
+
+**Create (`POST`):** `OWNER`, `ADMIN`, and `MEMBER` may create; `VIEWER` receives **403**. Optional JSON body (`CreateIncidentPostmortemRequest`): `title` (max 200), optional section fields (`summary`, `impact`, `rootCause`, `resolution`, `lessonsLearned`, `correctiveActions`, each max 10000). Omit body or send `{}` for defaults; server sets `authorId` from the authenticated user and `status` `DRAFT`. Default `title` is `Postmortem: {incident.title}` (truncated to 200). Returns **201**. **409:** `POSTMORTEM_ALREADY_EXISTS`, `INCIDENT_NOT_ELIGIBLE_FOR_POSTMORTEM`.
+
+**Update (`PATCH`):** draft only; partial update (only fields present in JSON apply). Same section fields as create. **403** when MEMBER edits another author's draft. **409:** `POSTMORTEM_NOT_EDITABLE`, `INCIDENT_NOT_ELIGIBLE_FOR_POSTMORTEM`.
+
+**Delete (`DELETE`):** draft only; **204 No Content**. Author may delete own draft; `OWNER`/`ADMIN` may delete any draft; `VIEWER` **403**. **409** when not draft.
+
+#### Lifecycle (`POST` on singleton subpaths)
+
+All lifecycle routes require authentication, resolved incident, and organization membership (archive/unarchive: `OWNER`/`ADMIN` only). Empty body.
+
+| Path | Effect |
+|------|--------|
+| `POST .../postmortem/publish` | `DRAFT` → `PUBLISHED`; requires non-empty trimmed `summary` and `rootCause` |
+| `POST .../postmortem/unpublish` | `PUBLISHED` → `DRAFT`; clears `publishedAt` / `publishedBy` |
+| `POST .../postmortem/archive` | `PUBLISHED` → `ARCHIVED` |
+| `POST .../postmortem/unarchive` | `ARCHIVED` → `DRAFT` |
+
+**409 codes:** `POSTMORTEM_PUBLISH_VALIDATION_FAILED`, `INVALID_POSTMORTEM_STATUS_TRANSITION`, `INCIDENT_NOT_ELIGIBLE_FOR_POSTMORTEM`. MEMBER may publish/unpublish only their own postmortem; `OWNER`/`ADMIN` may act on any.
+
+#### `GET /api/v1/organizations/{organizationId}/postmortems`
+
+Paginated organization library. Any organization member; non-members receive **403**. Query: `page` (default `0`), `size` (default `20`, max `100`), `status` (optional: `PUBLISHED` default when omitted, or `DRAFT`, `ARCHIVED`, `ALL`). Invalid `status` → **409** `VALIDATION_ERROR`. Response: `IncidentPostmortemPageResponse` (`content`, `page`, `size`, `totalElements`, `totalPages`). `PUBLISHED` / `ARCHIVED` lists ordered by `publishedAt` desc, then `createdAt` desc; `DRAFT` and `ALL` by `createdAt` desc (tie-break `id` desc).
+
+#### `IncidentPostmortemResponse`
+
+`id`, `organizationId`, `incidentId`, `authorId`, `authorEmail`, `authorFirstName`, `authorLastName`, `status` (`DRAFT` | `PUBLISHED` | `ARCHIVED`), `title`, `summary`, `impact`, `rootCause`, `resolution`, `lessonsLearned`, `correctiveActions`, `createdAt`, `updatedAt`, `publishedAt`, `publishedById`, `publishedByEmail`, `publishedByFirstName`, `publishedByLastName`, `archivedAt`.
+
 ### `GET|POST /api/v1/teams/{teamId}/members`
 
 List/add team members (`OWNER`/`ADMIN` in parent organization). Team members must already belong to the organization.

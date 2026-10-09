@@ -5,6 +5,7 @@ import com.example.incidentmanagement.organization.OrganizationMemberRepository;
 import com.example.incidentmanagement.organization.OrganizationRepository;
 import com.example.incidentmanagement.incident.IncidentCommentRepository;
 import com.example.incidentmanagement.incident.IncidentEventRepository;
+import com.example.incidentmanagement.incident.IncidentPostmortemRepository;
 import com.example.incidentmanagement.incident.IncidentRepository;
 import com.example.incidentmanagement.incident.OrganizationIncidentCounterRepository;
 import com.example.incidentmanagement.service.ServiceRepository;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 public class DatabaseCleaner {
 
     private final IncidentCommentRepository incidentCommentRepository;
+    private final IncidentPostmortemRepository incidentPostmortemRepository;
     private final IncidentEventRepository incidentEventRepository;
     private final IncidentRepository incidentRepository;
     private final OrganizationIncidentCounterRepository organizationIncidentCounterRepository;
@@ -30,6 +32,7 @@ public class DatabaseCleaner {
 
     public DatabaseCleaner(
             IncidentCommentRepository incidentCommentRepository,
+            IncidentPostmortemRepository incidentPostmortemRepository,
             IncidentEventRepository incidentEventRepository,
             IncidentRepository incidentRepository,
             OrganizationIncidentCounterRepository organizationIncidentCounterRepository,
@@ -41,6 +44,7 @@ public class DatabaseCleaner {
             RefreshTokenRepository refreshTokenRepository,
             UserRepository userRepository) {
         this.incidentCommentRepository = incidentCommentRepository;
+        this.incidentPostmortemRepository = incidentPostmortemRepository;
         this.incidentEventRepository = incidentEventRepository;
         this.incidentRepository = incidentRepository;
         this.organizationIncidentCounterRepository = organizationIncidentCounterRepository;
@@ -54,6 +58,7 @@ public class DatabaseCleaner {
     }
 
     public void cleanAll() {
+        incidentPostmortemRepository.deleteAll();
         incidentCommentRepository.deleteAll();
         incidentEventRepository.deleteAll();
         incidentRepository.deleteAll();

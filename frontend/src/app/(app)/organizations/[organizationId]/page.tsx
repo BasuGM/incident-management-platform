@@ -56,6 +56,11 @@ export default function OrganizationDetailPage() {
       href: `/organizations/${organizationId}/incidents`,
     },
     {
+      title: "Postmortems",
+      description: "Published incident write-ups and organizational learning.",
+      href: `/organizations/${organizationId}/postmortems`,
+    },
+    {
       title: "Members",
       description: "People with access to this organization and their roles.",
       href: `/organizations/${organizationId}/members`,

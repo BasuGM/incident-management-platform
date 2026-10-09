@@ -24,6 +24,7 @@ Migrations:
 | V6 | `incidents`, `organization_incident_counters` |
 | V7 | `incident_events` (append-only incident audit timeline) |
 | V8 | `incident_comments` (soft-deletable incident discussion) |
+| V9 | `incident_postmortems` (one postmortem per incident) |
 
 ### Multi-tenancy tables (V4+)
 
@@ -36,6 +37,7 @@ Migrations:
 - `app.organization_incident_counters` — per-organization atomic counter for incident number allocation (`next_number BIGINT`)
 - `app.incident_events` — immutable, append-only events for an incident (`type`, `payload JSONB`, `actor_id`, `organization_id`, `created_at`); FK to `incidents` (`ON DELETE CASCADE`), `organizations` (`ON DELETE CASCADE`), `users` (`ON DELETE RESTRICT`)
 - `app.incident_comments` — user-authored plain-text comments (`body` up to 5000 characters, `author_id`, `organization_id`, `incident_id`, `created_at`, `updated_at`, `deleted_at` for soft delete); FK to `incidents` / `organizations` (`ON DELETE CASCADE`), `users` (`ON DELETE RESTRICT`); list ordering `created_at ASC`, `id ASC` via index `(organization_id, incident_id, created_at, id)`
+- `app.incident_postmortems` — structured post-incident write-up; at most one row per incident (`UNIQUE (incident_id)`); `status` `DRAFT` / `PUBLISHED` / `ARCHIVED`; `title` (max 200); plain-text sections `summary`, `impact`, `root_cause`, `resolution`, `lessons_learned`, `corrective_actions` (each max 10000 characters, default empty string); `author_id`, optional `published_at` / `published_by_id`, optional `archived_at`; FK to `incidents` / `organizations` (`ON DELETE CASCADE`), `users` for author and publisher (`ON DELETE RESTRICT`); indexes `(organization_id, status, published_at DESC NULLS LAST)` and `(organization_id, created_at DESC)`
 
 ## Domain tables (authentication)
 

@@ -116,3 +116,66 @@ export type CreateIncidentCommentInput = {
 export type UpdateIncidentCommentInput = {
   body: string;
 };
+
+export type IncidentPostmortemStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
+
+export type OrganizationPostmortemListStatus = "PUBLISHED" | "DRAFT" | "ARCHIVED" | "ALL";
+
+export type IncidentPostmortem = {
+  id: string;
+  organizationId: string;
+  incidentId: string;
+  authorId: string;
+  authorEmail: string;
+  authorFirstName: string;
+  authorLastName: string;
+  status: IncidentPostmortemStatus;
+  title: string;
+  summary: string;
+  impact: string;
+  rootCause: string;
+  resolution: string;
+  lessonsLearned: string;
+  correctiveActions: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string | null;
+  publishedById: string | null;
+  publishedByEmail: string | null;
+  publishedByFirstName: string | null;
+  publishedByLastName: string | null;
+  archivedAt: string | null;
+};
+
+export type IncidentPostmortemPage = {
+  content: IncidentPostmortem[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+};
+
+/** Optional fields on create; omitted keys use server defaults. */
+export type CreateIncidentPostmortemInput = {
+  title?: string;
+  summary?: string;
+  impact?: string;
+  rootCause?: string;
+  resolution?: string;
+  lessonsLearned?: string;
+  correctiveActions?: string;
+};
+
+/**
+ * PATCH body: include only keys being updated. Explicit `null` clears a text section (stored as empty).
+ * Omitted keys are left unchanged on the server.
+ */
+export type UpdateIncidentPostmortemBody = {
+  title?: string;
+  summary?: string | null;
+  impact?: string | null;
+  rootCause?: string | null;
+  resolution?: string | null;
+  lessonsLearned?: string | null;
+  correctiveActions?: string | null;
+};

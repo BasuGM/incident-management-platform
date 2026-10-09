@@ -73,4 +73,9 @@ final class IncidentTestFixtures {
             Organization organization, Incident incident, User author, String body) {
         return IncidentComment.create(organization, incident, author, body);
     }
+
+    static IncidentPostmortem newPostmortem(
+            Organization organization, Incident incident, User author, String title) {
+        return IncidentPostmortem.create(organization, incident, author, title);
+    }
 }

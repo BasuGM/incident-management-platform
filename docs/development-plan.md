@@ -113,7 +113,42 @@ Organization-scoped plain-text discussion on incidents, separate from the Phase 
 
 ## Phase 8: Postmortems
 
-Structured follow-up and learning loops.
+Structured follow-up and learning loops after incidents are resolved.
+
+**Status:** **complete** — see [Phase 8 postmortems design](phase-8-postmortems-design.md)
+
+**Deferred from Phase 8:** structured action items (assignee, status, due dates), formal review/approval workflow, Markdown/rich text, multiple published versions per incident, new `IncidentEvent` types, notifications.
+
+| Step | Scope | Status |
+|------|--------|--------|
+| 0 | Domain, API, schema, UX, and test design | complete |
+| 1 | `app.incident_postmortems`, entity, repository, persistence tests | complete |
+| 2 | `IncidentPostmortemService` — eligibility, RBAC, lifecycle | complete |
+| 3 | REST API + DTOs + controller integration tests | complete |
+| 4 | Backend audit; contract hardening and regression tests | complete |
+| 5 | Frontend types and API layer | complete |
+| 6 | Incident detail postmortem UI | complete |
+| 7 | Organization postmortems list + navigation | complete |
+| 8 | Playwright E2E | complete |
+| 9 | Final audit, documentation sign-off | complete |
+
+### Delivered (Phase 8)
+
+- `V9__incident_postmortems.sql`, `IncidentPostmortem` entity/repository/service, REST controllers and DTOs
+- Frontend types, API client, TanStack Query hooks, incident postmortem UI, organization library page and nav
+- Vitest unit tests; Playwright postmortem lifecycle, library, and RBAC flows
+
+### Verified (Phase 8 Step 9 — 2026-10-09)
+
+Re-run during final audit (Docker Postgres/Redis healthy; backend on port 8080 with postmortem routes):
+
+- `backend/` `./gradlew clean test` — **239/239 PASS**
+- `frontend/` `npm run test:unit` — **44/44 PASS**
+- `frontend/` `npx playwright test tests/postmortems-library.spec.ts tests/postmortems.spec.ts` — **5/5 PASS**
+- `frontend/` `npx playwright test` — **35/35 PASS**
+- `frontend/` `npm run lint`, `npm run typecheck`, `npm run build` — **PASS**
+
+**Accepted test limitations:** no RTL component tests; `POSTMORTEM_NOT_FOUND` vs unrelated 404/403 covered in Vitest only; org list omits incident display metadata; unarchive returns `DRAFT` while retaining `publishedAt` / publisher fields (documented).
 
 ## Phase 9: On-call schedules
 

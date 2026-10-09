@@ -46,6 +46,8 @@ async function invalidateTenantQueries(queryClient: ReturnType<typeof useQueryCl
   await queryClient.invalidateQueries({ queryKey: ["incidents"] });
   await queryClient.invalidateQueries({ queryKey: ["incident"] });
   await queryClient.invalidateQueries({ queryKey: ["incident-comments"] });
+  await queryClient.invalidateQueries({ queryKey: ["incident-postmortem"] });
+  await queryClient.invalidateQueries({ queryKey: ["organization-postmortems"] });
   await queryClient.invalidateQueries({ queryKey: ["incident-events"] });
   await queryClient.invalidateQueries({ queryKey: ["services"] });
   await queryClient.invalidateQueries({ queryKey: ["service"] });
