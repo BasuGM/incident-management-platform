@@ -150,38 +150,163 @@ Re-run during final audit (Docker Postgres/Redis healthy; backend on port 8080 w
 
 **Accepted test limitations:** no RTL component tests; `POSTMORTEM_NOT_FOUND` vs unrelated 404/403 covered in Vitest only; org list omits incident display metadata; unarchive returns `DRAFT` while retaining `publishedAt` / publisher fields (documented).
 
-## Phase 9: On-call schedules
+## Phase 9: Incident operational discovery
 
-Rotations and coverage.
+List filtering, active-incident views, and search to complete deferred Phase 5 discoverability and support commander workflows.
 
-## Phase 10: Escalation policies
+**Status:** **signed off** (2026-10-13) — design: [phase-9-incident-discovery-design.md](phase-9-incident-discovery-design.md), roadmap: [phase-9-roadmap.md](phase-9-roadmap.md)
+
+**Note:** On-call schedules remain a planned follow-on (formerly listed here); sequencing rationale is in the roadmap.
+
+### Phase 9 steps
+
+| Step | Scope | Status |
+|------|--------|--------|
+| 0 | Gap analysis, ranked initiatives, roadmap | complete |
+| 1 | Design doc (`phase-9-incident-discovery-design.md`) | complete |
+| 2 | Backend incident list filters + tests | complete |
+| 3 | REST API + `api.md` | complete |
+| 4 | Frontend filters + URL state | complete |
+| 5 | Playwright + sign-off | complete |
+
+### Phase 9 Step 5 — verification (2026-10-13)
+
+**Login / E2E environment (diagnosis):** Earlier failures to leave `/login` were not a core auth defect. Causes included a stale backend JVM without Phase 9 list filters, Playwright `webServer` not inheriting `NEXT_PUBLIC_API_URL` (fixed in `playwright.config.ts`), flaky `loginThroughUi` timing (fixed in `tests/helpers/e2e-api.ts`), and missing Playwright browser binaries on a fresh agent host (`npx playwright install chromium`).
+
+**Commands and results:**
+
+| Command | Result |
+|---------|--------|
+| `backend/` `./gradlew test` | **PASS** (BUILD SUCCESSFUL) |
+| `frontend/` `npm run test:unit` | **52/52 PASS** |
+| `frontend/` `npm run lint` | **PASS** |
+| `frontend/` `npm run typecheck` | **PASS** |
+| `frontend/` `npm run build` | **PASS** |
+| `frontend/` `npx playwright test tests/incidents-discovery.spec.ts` | **1/1 PASS** |
+| `frontend/` `npx playwright test --workers=1` | **36/36 PASS** |
+
+**E2E prerequisites:** Docker Postgres/Redis; backend on `:8080` from current tree with repo root `.env`; frontend via Playwright `webServer` or existing dev server on `:3000`. Restart backend after pulling filter changes so list `active=true` is enforced server-side.
+
+**Test fix (Step 5):** `tests/incidents.spec.ts` — severity filter on the list page made `getByText('SEV2')` ambiguous; assert on table cell instead.
+
+**Accepted limitations:** Local full-suite E2E should use `--workers=1` (or `CI=true`) when sharing one backend; parallel workers previously caused flaky failures unrelated to discovery. Discovery coverage is consolidated in one Playwright test (active default, all view, severity, mine, search by title/number, pagination + reload, empty state clear filters).
+
+Parallel engineering (recommended): CI workflow, README and stale doc refresh (see roadmap §7).
+
+## Phase 10: On-call schedules
+
+Organization-scoped rotation definitions, primary on-call coverage (computed daily/weekly handoffs), and read APIs for current/upcoming responders. Builds on org membership, teams, services, and existing RBAC.
+
+**Status:** **signed off** (2026-10-13) — design: [phase-10-on-call-design.md](phase-10-on-call-design.md). Automated verification complete; **not deployed to production** as part of this sign-off.
+
+**Prerequisites delivered:** Phase 9 discovery (commander/`mine` views); Phases 3–4 teams/services; no notification or escalation infrastructure required for Phase 10 MVP.
+
+**Explicitly not in Phase 10:** paging, email/SMS/Slack, escalation execution, calendar sync, external on-call vendors, per-shift overrides, secondary on-call layer, auto-assign incident commander, materialized recurrence/RRULE engine.
+
+### Phase 10 steps (proposed)
+
+| Step | Scope | Status |
+|------|--------|--------|
+| 0 | Design doc + plan alignment | complete |
+| 1 | `V10` migration (`on_call_schedules`, `on_call_schedule_participants`) | complete |
+| 2 | Entities, repositories | complete |
+| 3 | Rotation calculator (timezone/DST) | complete |
+| 4 | `OnCallScheduleService` + validation | complete |
+| 5 | REST API + `api.md` | complete |
+| 6 | Frontend API types + hooks | complete |
+| 7 | List + detail + coverage UI | complete |
+| 8 | Create/edit + participant ordering | complete |
+| 9 | E2E + regression audit | complete |
+| 10 | Verification sign-off | complete |
+
+**Open product decisions (pre-implementation):** team-scoped participant membership rule; behavior before `effective_from` anchor; archive-only vs hard delete — resolved in design doc §13 and reflected in implementation.
+
+### Phase 10 Step 9 — audit and verification (2026-10-13)
+
+**Environment:** Docker Postgres/Redis healthy; backend on port **8080** with Phase 10 routes (`GET .../on-call-schedules` → **200** authenticated). Frontend Playwright `webServer` with `NEXT_PUBLIC_API_URL=http://localhost:8080`, `--workers=1`, `--retries=0`.
+
+| Area | Result |
+|------|--------|
+| Backend `./gradlew test --tests 'com.example.incidentmanagement.oncall.*'` | **PASS** (46 on-call tests) |
+| Backend `./gradlew test` | **PASS** (**302/302**, 0 skipped) |
+| Frontend focused on-call Vitest (5 files) | **36/36 PASS** |
+| Frontend `npm run test:unit` | **88/88 PASS** |
+| Frontend `npm run lint`, `typecheck`, `build` | **PASS** |
+| Playwright `on-call-schedules.spec.ts`, `on-call-schedules-management.spec.ts` | **2/2 PASS** |
+| Playwright full suite | **38/38 PASS** |
+
+**Audit summary:** MVP persistence, rotation calculator (handoff boundary, weekly anchor, DST gap/overlap, pre-`effective_from` null current), service validation, REST contract, frontend list/detail/coverage/forms, RBAC, archive/reactivate, and TanStack Query cache keys align with design and `docs/api.md`. Deferred scope-based coverage resolver and notification/escalation hooks remain unimplemented by design.
+
+**Accepted limitations:** DB unique name is case-sensitive on `(organization_id, name)`; case-insensitive duplicate rejection is application-layer (`DUPLICATE_NAME`). No dedicated backend integration test for `clearScope` PATCH (covered by frontend form tests + E2E team-scope edit). No RTL component tests. Mid-session permission downgrade (403) covered in form handlers, not E2E. Concurrent duplicate-name races rely on app check + DB constraint, not load testing.
+
+### Phase 10 Step 10 — final sign-off (2026-10-13)
+
+**Sign-off owner:** Not recorded.
+
+**Verification evidence** (from Step 9 audit, re-confirmed for closure):
+
+| Command / check | Result |
+|-----------------|--------|
+| `backend/` `./gradlew test --tests 'com.example.incidentmanagement.oncall.*'` | **46/46 PASS** |
+| `backend/` `./gradlew test` | **302/302 PASS** (0 failures, 0 skipped) |
+| `frontend/` focused on-call Vitest (5 files under `src/lib/**/on-call*`, hooks, API) | **36/36 PASS** |
+| `frontend/` `npm run test:unit` | **88/88 PASS** |
+| `frontend/` `npm run lint` | **PASS** |
+| `frontend/` `npm run typecheck` | **PASS** |
+| `frontend/` `npm run build` | **PASS** |
+| `frontend/` `npx playwright test tests/on-call-schedules.spec.ts tests/on-call-schedules-management.spec.ts` | **2/2 PASS** |
+| `frontend/` `npx playwright test --workers=1` | **38/38 PASS** (0 skipped) |
+
+**Environment at verification:** Docker Postgres/Redis; backend from current tree on port **8080** with on-call routes available; Playwright `webServer` with `NEXT_PUBLIC_API_URL=http://localhost:8080`.
+
+#### Readiness checklist (local / CI)
+
+| Item | Requirement |
+|------|-------------|
+| Database | Apply Flyway **V10** (`on_call_schedules`, `on_call_schedule_participants`); run migration integration tests when changing schema |
+| Configuration | Repo-root `.env` (or equivalent) for DB/Redis; frontend `NEXT_PUBLIC_API_URL` pointing at the API used for E2E |
+| Backend | `./gradlew bootRun` (or CI image) from **current** source after V10 migration |
+| Frontend | `npm run dev` or Playwright-managed `webServer` on `:3000` |
+| Unit / integration | `./gradlew test`; `frontend/` `npm run test:unit`, `lint`, `typecheck`, `build` |
+| E2E | `npx playwright install chromium` on new hosts; `npx playwright test --workers=1` against a backend that includes Phase 10 (stale JVMs without on-call routes cause skips/failures) |
+| Production deploy | Separate release process — this sign-off covers **repository verification only**, not production rollout |
+
+#### Accepted limitations and deferred work (not blockers)
+
+- **Schedule names:** case-insensitive uniqueness enforced in application code (`DUPLICATE_NAME`); database `UNIQUE (organization_id, name)` is case-sensitive.
+- **`clearScope` PATCH:** no dedicated backend integration test (frontend form tests + E2E scope edit).
+- **Scope-based coverage resolver** (`GET .../on-call-schedules/coverage` by team/service): deferred — see `api.md`.
+- **Notifications and escalation execution:** Phase 12 / Phase 11.
+- **Auto incident commander from on-call; real-time coverage (polling/WebSockets):** not implemented.
+
+## Phase 11: Escalation policies
 
 Automated escalation paths.
 
-## Phase 11: Notifications
+## Phase 12: Notifications
 
 Email, chat, and push channels.
 
-## Phase 12: Deployments
+## Phase 13: Deployments
 
 Change events correlated with incidents.
 
-## Phase 13: Dashboard / metrics
+## Phase 14: Dashboard / metrics
 
 Operational visibility and reporting.
 
-## Phase 14: Audit logs
+## Phase 15: Audit logs
 
 Immutable activity history.
 
-## Phase 15: Webhooks / integrations
+## Phase 16: Webhooks / integrations
 
 External monitoring and tooling.
 
-## Phase 16: Redis / WebSockets / advanced infrastructure
+## Phase 17: Redis / WebSockets / advanced infrastructure
 
 Caching, rate limits, real-time updates, and async processing.
 
-## Phase 17: Production hardening
+## Phase 18: Production hardening
 
 Security review, observability, performance, and deployment automation.

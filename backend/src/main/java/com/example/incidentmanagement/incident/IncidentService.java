@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,9 +102,12 @@ public class IncidentService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Incident> listIncidents(UUID organizationId, UUID callerId, Pageable pageable) {
+    public Page<Incident> listIncidents(
+            UUID organizationId, UUID callerId, IncidentListCriteria criteria, Pageable pageable) {
         organizationAuthorizationService.requireOrganizationMember(organizationId, callerId);
-        return incidentRepository.findByOrganizationId(organizationId, pageable);
+        Specification<Incident> specification =
+                IncidentSpecifications.forOrganization(organizationId, criteria);
+        return incidentRepository.findAll(specification, pageable);
     }
 
     @Transactional(readOnly = true)

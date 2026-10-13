@@ -126,6 +126,7 @@ class IncidentServiceIntegrationTest extends IntegrationTestBase {
         var page = incidentService.listIncidents(
                 ctx.organization.getId(),
                 ctx.viewer.getId(),
+                IncidentListCriteria.empty(),
                 PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "createdAt")));
 
         assertThat(page.getTotalElements()).isEqualTo(2);

@@ -224,13 +224,19 @@ class IncidentServiceTest {
         void listUsesRepositoryPagination() {
             Pageable pageable = PageRequest.of(0, 20);
             Page<Incident> page = new PageImpl<>(List.of(openIncident()));
-            when(incidentRepository.findByOrganizationId(organizationId, pageable)).thenReturn(page);
+            when(incidentRepository.findAll(
+                            org.mockito.ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<Incident>>any(),
+                            org.mockito.ArgumentMatchers.eq(pageable)))
+                    .thenReturn(page);
 
-            Page<Incident> result = incidentService.listIncidents(organizationId, memberUserId, pageable);
+            Page<Incident> result = incidentService.listIncidents(
+                    organizationId, memberUserId, IncidentListCriteria.empty(), pageable);
 
             assertThat(result.getContent()).hasSize(1);
             verify(organizationAuthorizationService).requireOrganizationMember(organizationId, memberUserId);
-            verify(incidentRepository).findByOrganizationId(organizationId, pageable);
+            verify(incidentRepository).findAll(
+                    org.mockito.ArgumentMatchers.<org.springframework.data.jpa.domain.Specification<Incident>>any(),
+                    org.mockito.ArgumentMatchers.eq(pageable));
         }
     }
 

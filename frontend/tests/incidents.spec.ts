@@ -146,7 +146,7 @@ test.describe("incidents", () => {
 
     await page.getByRole("link", { name: "← Back to incidents" }).click();
     await expect(page.getByRole("cell", { name: "INC-1" })).toBeVisible();
-    await expect(page.getByText("SEV2")).toBeVisible();
+    await expect(page.getByRole("cell", { name: "SEV2" })).toBeVisible();
 
     await loginThroughUi(page, viewerEmail);
 

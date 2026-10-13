@@ -1,4 +1,5 @@
 import { getAuthenticatedClient } from "@/lib/api/authenticated-client";
+import { buildIncidentListQueryString, type IncidentListApiQuery } from "@/lib/incident-list-filters";
 import type {
   CreateIncidentInput,
   Incident,
@@ -7,17 +8,30 @@ import type {
   UpdateIncidentBody,
 } from "@/types/incident";
 
+export type ListIncidentsParams = IncidentListApiQuery;
+
+export function serializeListIncidentsParams(params: ListIncidentsParams): string {
+  return buildIncidentListQueryString(params);
+}
+
 export async function listIncidents(
   organizationId: string,
-  page = 0,
-  size = 20,
+  params: ListIncidentsParams,
 ): Promise<IncidentPage> {
-  const params = new URLSearchParams({
-    page: String(page),
-    size: String(size),
+  const queryString = buildIncidentListQueryString({
+    page: params.page ?? 0,
+    size: params.size ?? 20,
+    active: params.active,
+    status: params.status,
+    severity: params.severity,
+    serviceId: params.serviceId,
+    commanderId: params.commanderId,
+    mine: params.mine,
+    search: params.search,
   });
+
   return getAuthenticatedClient().get<IncidentPage>(
-    `/api/v1/organizations/${organizationId}/incidents?${params.toString()}`,
+    `/api/v1/organizations/${organizationId}/incidents?${queryString}`,
   );
 }
 

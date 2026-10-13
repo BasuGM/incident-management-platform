@@ -104,7 +104,42 @@ PATCH updates only fields present in the body (same semantics as teams). `teamId
 
 List/create incidents in the organization (authentication required).
 
-**List:** any organization member. Query parameters: `page` (default `0`), `size` (default `20`, max `100`). Results are ordered by `createdAt` descending. Response shape:
+**List:** any organization member (`403` for non-members). Omitted filter parameters do **not** restrict results (all statuses are returned unless filtered).
+
+Query parameters:
+
+| Parameter | Type | Notes |
+|-----------|------|--------|
+| `page` | int | Default `0`; negative values treated as `0` |
+| `size` | int | Default `20`, max `100` |
+| `active` | boolean | `true` ⇒ `OPEN` or `ACKNOWLEDGED`; `false` ⇒ `RESOLVED` or `CANCELLED`; omitted ⇒ no status filter from `active`. The web UI uses `active=all` in the browser URL for “All incidents”; that value is **not** sent to this API (the client omits `active` and `status`). |
+| `status` | enum | Exact match: `OPEN`, `ACKNOWLEDGED`, `RESOLVED`, `CANCELLED`. When present, **`active` is ignored** |
+| `severity` | enum | `SEV1`–`SEV4` |
+| `serviceId` | UUID | Filters by incident `serviceId`; valid UUID for a service in another organization returns an **empty page** (no leak) |
+| `commanderId` | UUID or `me` | Filters by commander; `me` ⇒ authenticated user |
+| `mine` | boolean | `true` ⇒ same as `commanderId=me`; **cannot** be combined with `commanderId` |
+| `search` | string | Trimmed; whitespace-only ignored; max **200** characters after trim |
+
+**Sort:** `createdAt` descending, then `id` descending (deterministic tie-break).
+
+**Filter combination:** logical **AND** across parameters.
+
+**Search:**
+
+- Case-insensitive substring match on **title**.
+- Pattern `INC-{n}` (case-insensitive) matches `incidentNumber` **n**.
+- All-digit term matches `incidentNumber` **or** title substring.
+- **Description is not searched.**
+
+**Validation errors:**
+
+| Condition | HTTP | `error` |
+|-----------|------|---------|
+| Invalid `status`, `severity`, `active`, `mine`, or search length | **409** | `VALIDATION_ERROR` |
+| `mine=true` with `commanderId` present | **409** | `VALIDATION_ERROR` |
+| Malformed `serviceId` or `commanderId` (not `me`) | **400** | `VALIDATION_ERROR` |
+
+Response shape:
 
 ```json
 {
@@ -214,6 +249,38 @@ Paginated organization library. Any organization member; non-members receive **4
 #### `IncidentPostmortemResponse`
 
 `id`, `organizationId`, `incidentId`, `authorId`, `authorEmail`, `authorFirstName`, `authorLastName`, `status` (`DRAFT` | `PUBLISHED` | `ARCHIVED`), `title`, `summary`, `impact`, `rootCause`, `resolution`, `lessonsLearned`, `correctiveActions`, `createdAt`, `updatedAt`, `publishedAt`, `publishedById`, `publishedByEmail`, `publishedByFirstName`, `publishedByLastName`, `archivedAt`.
+
+### On-call schedules (Phase 10)
+
+Organization-scoped rotation definitions and computed coverage. Paths include `organizationId`. Non-members receive **403** for all routes. Mutations require organization **`OWNER`** or **`ADMIN`**.
+
+#### `GET /api/v1/organizations/{organizationId}/on-call-schedules`
+
+List schedules. Query: `status` optional — `ACTIVE` (default), `ARCHIVED`, or `ALL`. Returns a JSON array of schedule summaries (`id`, `name`, `status`, `timezone`, `rotationLengthDays`, `handoffLocalTime`, `handoffDayOfWeek`, `effectiveFrom`, `teamId`, `serviceId`, `participantCount`, `createdAt`, `updatedAt`). Invalid `status` → **409** `VALIDATION_ERROR`.
+
+#### `POST /api/v1/organizations/{organizationId}/on-call-schedules`
+
+Create schedule. **201** + `OnCallScheduleResponse`. Body: `name`, `timezone`, `rotationLengthDays` (`1` or `7`), `handoffLocalTime` (local time), `handoffDayOfWeek` (required when weekly, 1–7 ISO Monday=1), `effectiveFrom` (date), optional `teamId` or `serviceId` (not both), `participantUserIds` (non-empty ordered UUID list). **409:** `VALIDATION_ERROR`, `DUPLICATE_NAME`, `SCHEDULE_EMPTY`, team/service scope errors.
+
+#### `GET /api/v1/organizations/{organizationId}/on-call-schedules/{scheduleId}`
+
+Detail for any member. **403** when schedule is not in the organization.
+
+#### `PATCH /api/v1/organizations/{organizationId}/on-call-schedules/{scheduleId}`
+
+Partial update (`OWNER`/`ADMIN`). Omitted JSON fields are unchanged. `participantUserIds` replaces the full ordered list when present. `clearScope: true` clears team/service targeting. Archived schedules cannot be updated (**409** `SCHEDULE_NOT_ACTIVE`). Status cannot be changed via PATCH (use archive/reactivate).
+
+#### `POST .../on-call-schedules/{scheduleId}/archive` | `POST .../reactivate`
+
+Archive or reactivate (`OWNER`/`ADMIN`). Reactivate requires at least one participant (**409** `SCHEDULE_EMPTY`).
+
+#### `GET .../on-call-schedules/{scheduleId}/coverage`
+
+Computed primary coverage for any member. Query: `at` optional ISO-8601 instant (default: server current time), `upcoming` optional int (default `3`, max `20`). **409** `SCHEDULE_NOT_ACTIVE` when archived; **409** `SCHEDULE_EMPTY` when no participants. Response: `scheduleId`, `status`, `timezone`, `queriedAt`, `current` (object or JSON `null` before the first handoff), `nextHandoffAt`, `upcoming` (array of shifts with `userId`, `displayName`, `shiftStartsAt`, `shiftEndsAt` as UTC instants).
+
+`OnCallScheduleResponse`: `{ "schedule": { ...summary fields }, "participants": [ { "userId", "displayName", "position" } ] }`.
+
+**Deferred:** scope-based `GET .../on-call-schedules/coverage` (by `teamId` / `serviceId`) is specified in the Phase 10 design but not implemented yet.
 
 ### `GET|POST /api/v1/teams/{teamId}/members`
 

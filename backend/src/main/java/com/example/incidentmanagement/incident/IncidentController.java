@@ -47,11 +47,23 @@ public class IncidentController {
             @PathVariable UUID organizationId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String active,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String severity,
+            @RequestParam(required = false) String serviceId,
+            @RequestParam(required = false) String commanderId,
+            @RequestParam(required = false) String mine,
+            @RequestParam(required = false) String search,
             @AuthenticationPrincipal UserPrincipal principal) {
         int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
-        Pageable pageable =
-                PageRequest.of(Math.max(page, 0), pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return IncidentPageResponse.from(incidentService.listIncidents(organizationId, principal.getId(), pageable));
+        Pageable pageable = PageRequest.of(
+                Math.max(page, 0),
+                pageSize,
+                Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id")));
+        IncidentListCriteria criteria = IncidentListCriteriaParser.parse(
+                active, status, severity, serviceId, commanderId, mine, search, principal.getId());
+        return IncidentPageResponse.from(
+                incidentService.listIncidents(organizationId, principal.getId(), criteria, pageable));
     }
 
     @PostMapping

@@ -13,6 +13,7 @@ const links = (organizationId: string, canManage: boolean) =>
     { href: `/organizations/${organizationId}`, label: "Overview", exact: true },
     { href: `/organizations/${organizationId}/teams`, label: "Teams", exact: false },
     { href: `/organizations/${organizationId}/services`, label: "Services", exact: false },
+    { href: `/organizations/${organizationId}/on-call`, label: "On-call", exact: false },
     { href: `/organizations/${organizationId}/incidents`, label: "Incidents", exact: false },
     { href: `/organizations/${organizationId}/postmortems`, label: "Postmortems", exact: false },
     { href: `/organizations/${organizationId}/members`, label: "Members", exact: false },

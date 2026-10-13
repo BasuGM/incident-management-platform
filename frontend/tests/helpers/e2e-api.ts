@@ -9,9 +9,10 @@ export async function registerAndLogin(
   firstName: string,
   lastName: string,
 ) {
-  await request.post(`${apiBase}/api/v1/auth/register`, {
+  const register = await request.post(`${apiBase}/api/v1/auth/register`, {
     data: { email, password: E2E_PASSWORD, firstName, lastName },
   });
+  expect(register.ok()).toBeTruthy();
   const login = await request.post(`${apiBase}/api/v1/auth/login`, {
     data: { email, password: E2E_PASSWORD },
   });
@@ -66,10 +67,50 @@ export async function loginThroughUi(page: Page, email: string) {
   } else {
     await page.goto("/login");
   }
+  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Login" })).toBeVisible();
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password", { exact: true }).fill(E2E_PASSWORD);
+  const loginResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes("/api/v1/auth/login") && response.request().method() === "POST",
+  );
   await page.getByRole("button", { name: "Login" }).click();
-  await expect(page).toHaveURL(/\/dashboard$/);
+  const response = await loginResponse;
+  expect(response.ok(), `UI login failed: HTTP ${response.status()}`).toBeTruthy();
+  await expect(page).toHaveURL(/\/dashboard$/, { timeout: 15_000 });
+}
+
+export async function requireOnCallSchedulesApi(
+  request: APIRequestContext,
+  token: string,
+  organizationId: string,
+) {
+  const response = await request.get(
+    `${apiBase}/api/v1/organizations/${organizationId}/on-call-schedules`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  if (!response.ok()) {
+    test.skip(true, "On-call schedules API is not available (start backend with current code)");
+  }
+}
+
+export async function createOnCallSchedule(
+  request: APIRequestContext,
+  token: string,
+  organizationId: string,
+  body: Record<string, unknown>,
+) {
+  const response = await request.post(
+    `${apiBase}/api/v1/organizations/${organizationId}/on-call-schedules`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      data: body,
+    },
+  );
+  expect(response.ok()).toBeTruthy();
+  const detail = await response.json();
+  return detail as { schedule: { id: string; name: string } };
 }
 
 export async function requirePostmortemsApi(

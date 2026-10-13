@@ -8,6 +8,8 @@ import com.example.incidentmanagement.incident.IncidentEventRepository;
 import com.example.incidentmanagement.incident.IncidentPostmortemRepository;
 import com.example.incidentmanagement.incident.IncidentRepository;
 import com.example.incidentmanagement.incident.OrganizationIncidentCounterRepository;
+import com.example.incidentmanagement.oncall.OnCallScheduleParticipantRepository;
+import com.example.incidentmanagement.oncall.OnCallScheduleRepository;
 import com.example.incidentmanagement.service.ServiceRepository;
 import com.example.incidentmanagement.team.TeamMemberRepository;
 import com.example.incidentmanagement.team.TeamRepository;
@@ -22,6 +24,8 @@ public class DatabaseCleaner {
     private final IncidentEventRepository incidentEventRepository;
     private final IncidentRepository incidentRepository;
     private final OrganizationIncidentCounterRepository organizationIncidentCounterRepository;
+    private final OnCallScheduleParticipantRepository onCallScheduleParticipantRepository;
+    private final OnCallScheduleRepository onCallScheduleRepository;
     private final ServiceRepository serviceRepository;
     private final TeamMemberRepository teamMemberRepository;
     private final TeamRepository teamRepository;
@@ -36,6 +40,8 @@ public class DatabaseCleaner {
             IncidentEventRepository incidentEventRepository,
             IncidentRepository incidentRepository,
             OrganizationIncidentCounterRepository organizationIncidentCounterRepository,
+            OnCallScheduleParticipantRepository onCallScheduleParticipantRepository,
+            OnCallScheduleRepository onCallScheduleRepository,
             ServiceRepository serviceRepository,
             TeamMemberRepository teamMemberRepository,
             TeamRepository teamRepository,
@@ -48,6 +54,8 @@ public class DatabaseCleaner {
         this.incidentEventRepository = incidentEventRepository;
         this.incidentRepository = incidentRepository;
         this.organizationIncidentCounterRepository = organizationIncidentCounterRepository;
+        this.onCallScheduleParticipantRepository = onCallScheduleParticipantRepository;
+        this.onCallScheduleRepository = onCallScheduleRepository;
         this.serviceRepository = serviceRepository;
         this.teamMemberRepository = teamMemberRepository;
         this.teamRepository = teamRepository;
@@ -63,6 +71,8 @@ public class DatabaseCleaner {
         incidentEventRepository.deleteAll();
         incidentRepository.deleteAll();
         organizationIncidentCounterRepository.deleteAll();
+        onCallScheduleParticipantRepository.deleteAll();
+        onCallScheduleRepository.deleteAll();
         serviceRepository.deleteAll();
         teamMemberRepository.deleteAll();
         teamRepository.deleteAll();
